@@ -12,6 +12,31 @@ def print_influxes(Influxes):
         v%s = %s, &nbsp; 
         """ % (ID, Value)
 
+def adjust_influxes(Influxes, Substrates):
+    """Adjust influxes values
+    """
+    Substrate2Index= {"glucose":1, "galactose":3, "gluconate":4, "citrate":6, "xylose":7, "succinate":8, "malate":9, "lactate":10, "acetate":13}
+ 
+    #Step 1: Compute dependent influxes 
+    Influxes[1] = 100 * Substrates[Substrate2Index["glucose"]]
+    Influxes[13] = Influxes[11] - Influxes[12]
+    Influxes[16] = Influxes[14]
+    Influxes[25] = Influxes[10] - Influxes[11] + 100 * Substrates[Substrate2Index["gluconate"]]
+    Influxes[18] = Influxes[17] + 100 * Substrates[Substrate2Index["citrate"]]
+    Influxes[15] = Influxes[12] + 100 * Substrates[Substrate2Index["xylose"]]
+    Influxes[24] = Influxes[18] - Influxes[19]
+    Influxes[21] = Influxes[20] + Influxes[24] + 100 * Substrates[Substrate2Index["succinate"]]
+    Influxes[22] = Influxes[21]
+    Influxes[29] = Influxes[22] + Influxes[24] - Influxes[23] + 100 * Substrates[Substrate2Index["malate"]]
+
+    # Step 2: Correct flux values
+    if Substrates[Substrate2Index["acetate"]] != 0:
+        Influxes[9] = -100 * Substrates[Substrate2Index["acetate"]]
+    if  Substrates[Substrate2Index["lactate"]] != 0:
+        Influxes[27] = -100 * Substrates[Substrate2Index["lactate"]]
+
+    return Influxes
+
 def predict(Vector, Substrates):
     """ Predict and adjust all influx values
 
@@ -31,6 +56,7 @@ def predict(Vector, Substrates):
 
     T = time.clock()
     Influxes = {Index:Model.predict(Vector)[0] for Index,Model in Models.iteritems()}# use dictionary because influx IDs are not consecutive
+    Influxes = adjust_influxes(Influxes, Substrates)
     print_influxes(Influxes)
 
     T = time.clock() -T
