@@ -27,7 +27,7 @@ for Feature_name in Feature_names:
     Features[Feature_name] = float(Feature_value) # convert all string to numbers
 
     print """\
-    <p>%s is %s</p>
+    %s is %s, 
      """ % (Feature_name, Feature_value)
 
 # Generate substrate matrix
@@ -44,26 +44,9 @@ print """\
 <h2>Influx values based on given parameters:</h2>
 """# % len(Vector)  #"\t".join(map(str, Vector))
 
-# Predict all influx values
-import cPickle
-Models = cPickle.load(open("models.p", "r"))
-#  Models: dict, keys are influx indexes and values are regression models
-
-import time
-T = time.clock()
-print "<p>"
-for i, Model in Models.iteritems():
-#    Influx_value = 0
-    Influx_value = Model.predict(Vector)[0]
-    print """\
-    v%s = %s, &nbsp; 
-    """ % (i, Influx_value)
-
-T = time.clock() -T
-print """</p>\
-<p>Using a k-NN model where k=5, uniform weights for all neighbors, BallTree of leaf size 30 and Minkowski distance. </p>
-<p>Regression done in %s seconds.</p>
-""" % T
+import libflux 
+#libflux.test("hello, world")
+libflux.predict(Vector, Substrates) # use the feature vector to predict influx values 
 
 print """\
 <p><a href="index.html">Go back to submission page</a></p>
