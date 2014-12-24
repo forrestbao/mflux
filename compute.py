@@ -45,8 +45,8 @@ print """\
 """# % len(Vector)  #"\t".join(map(str, Vector))
 
 import libflux 
-#libflux.test("hello, world")
-libflux.predict(Vector, Substrates) # use the feature vector to predict influx values 
+libflux.test("hello, world")
+Influxes = libflux.predict(Vector, Substrates) # use the feature vector to predict influx values 
 
 print """\
 <p><a href="index.html">Go back to submission page</a></p>
