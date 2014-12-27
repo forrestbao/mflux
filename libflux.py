@@ -53,7 +53,7 @@ def adjust_influxes(Influxes, Substrates):
     Influxes[16] = Influxes[14]
     Influxes[25] = Influxes[10] - Influxes[11] + 100 * Substrates[Substrate2Index["gluconate"]]
     Influxes[18] = Influxes[17] + 100 * Substrates[Substrate2Index["citrate"]]
-    Influxes[15] = Influxes[12] + 100 * Substrates[Substrate2Index["xylose"]]
+    Influxes[15] = Influxes[12] - Influxes[14] + 100 * Substrates[Substrate2Index["xylose"]]
     Influxes[24] = Influxes[18] - Influxes[19]
     Influxes[21] = Influxes[20] + Influxes[24] + 100 * Substrates[Substrate2Index["succinate"]]
     Influxes[22] = Influxes[21]
