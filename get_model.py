@@ -8,16 +8,17 @@ def read_spreadsheet(File):
 
 	Training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
                    values are 2-tuples (Feature, Label), where
-                   Feature is a 2-D list, each sublist is 27-D feature vector for one sample
+                   Feature is a 2-D list, each sublist is 24-D feature vector for one sample
                    and 
                    Label is a 1-D list, labels for all samples.
+	
 
     Notes
     ============
     EMPs are N.A. for some samples, training features were dropped for them.
     That's why we need one training feature matrix for each EMP.
     
-    We have 29 influxes values to predict 
+    We have 29 influxes values to predict and thus the index/key for Training_data goes from 1 to 29
 
     AA is 26 for 0-index
     BA is 32 for 0-index

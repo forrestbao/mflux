@@ -10,16 +10,17 @@
 
 
 <form method="get" action="compute.py">
-Purpose: <select name="Purpose">
+
+<!--Purpose: <select name="Purpose">
 <option value="1">1. Research</option>
 <option value="2">2. Metabolic engineering to produce target products</option>
-</select><br>
+</select><br--!>
 
 Reactor type: <select name="Reactor">
 <option value="1">1. Batch  (shake flask)</option>
 <option value="2">2. Batch  (baffled flask)</option>
-<option value="3">3. Batch (closed) </option>
-<option value="4">4. fermentor</option>
+<option value="3">3. Batch (closed bottle) </option>
+<option value="4">4. Batch (bioreactor) </option>
 <option value="5">5. Chemostat, CSTR</option>
 </select><br>
 
@@ -76,6 +77,12 @@ Nutrient type: <select name="Nutrient">
 <option value="6">6. Under toxic condition </option>
 </select><br>
 
+Oxygen condition: <select name="Oxygen">
+<option value="1">1. Aerobic </option>
+<option value="2">2. Microaerobic </option>
+<option value="3">3. Anaerobic </option>
+</select><br>
+
 Engineering method: <select name="Method">
 <option value="1">1. Wild type </option>
 <option value="2">2. With plasmid </option>
@@ -95,12 +102,12 @@ Extra energy input: <select name="Energy">
 <option value="2">2. Dynamics </option>
 </select><br>
 
-Growth Rate: <input type="text" name="growth_rate">  (h-1)
+Growth Rate: <input type="text" name="Growth_rate">  (h<sup>-1</sup>) (normally in the range of [0, 2] h<sup>-1</sup>)
 <br>
-Substrate Uptake Rate: <input type="text" name="substrate_uptake_rate">  (mmol*g-1*h-1)
+Substrate Uptake Rate: <input type="text" name="Substrate_uptake_rate">  (mmol*g<sup>-1</sup>*h-<sup>1</sup>)
 <br>
 
-Primary labeled substrate: <select name="substrate_first">
+Primary labeled substrate: <select name="Substrate_first">
 <option value="1">1. Glucose </option>
 <option value="2">2. Fructose </option>
 <option value="3">3. Galactose </option>
@@ -113,37 +120,37 @@ Primary labeled substrate: <select name="substrate_first">
 <option value="10">10. Lactate </option>
 <option value="11">11. Pyruvate </option>
 <option value="12">12. Glycerol </option>
-<option value="13">13. Ethanol</option>
-<option value="14">14. Acetate </option>
-<option value="15">15. Methanol </option>
-<option value="16">16. NaHCO3 </option>
- </select><br>
-
-Ratio of Primary labeled substrate: <input type="text" name="ratio_first"> 
-<br>
-
-Secondary labeled substrate: <select name="substrate_sec">
-<option value="1">1. Fructose </option>
-<option value="2">2. Galactose </option>
-<option value="3">3. Gluconate </option>
-<option value="4">4. Glutamate </option>
-<option value="5">5. Citrate </option>
-<option value="6">6. Xylose </option>
-<option value="7">7. Succinate </option>
-<option value="8">8. Malate </option>
-<option value="9">9. Lactate </option>
-<option value="10">10. Pyruvate </option>
-<option value="11">11. Glycerol </option>
-<option value="12">12. Ethanol </option>
 <option value="13">13. Acetate </option>
-<option value="14">14. Methanol </option>
-<option value="15">15. NaHCO3  </option>
+<option value="14">14. NaHCO<sub>3</sub> </option>
  </select><br>
 
-Ratio of Secondary labeled substrate: <input type="text" name="ratio_sec"> 
+Ratio of Primary labeled substrate: <input type="text" name="Ratio_first">  (In the range of [0, 1])
 <br>
 
-Existence of other carbon source : <select name="substrate_other">
+Secondary labeled substrate: <select name="Substrate_sec">
+<option value="1">1. Glucose </option>
+<option value="2">2. Fructose </option>
+<option value="3">3. Galactose </option>
+<option value="4">4. Gluconate </option>
+<option value="5">5. Glutamate </option>
+<option value="6">6. Citrate </option>
+<option value="7">7. Xylose </option>
+<option value="8">8. Succinate </option>
+<option value="9">9. Malate </option>
+<option value="10">10. Lactate </option>
+<option value="11">11. Pyruvate </option>
+<option value="12">12. Glycerol </option>
+<option value="13">13. Acetate </option>
+<option value="14">14. NaHCO<sub>3</sub> </option>
+</select><br>
+
+Ratio of Secondary labeled substrate: <input type="text" name="Ratio_sec"> (In the range of [0, 1])
+<br>
+
+Note: Ratio of Primary labeled substrate + Ratio of Secondary labeled substrate = 1
+<br>
+
+Existence of other carbon source : <select name="Substrate_other">
 <option value="1">1. No </option>
 <option value="2">2. Yes </option>
  </select><br>
@@ -153,7 +160,19 @@ Existence of other carbon source : <select name="substrate_other">
 
 <hr>
 
-<p>This project is supported by NSF.</p>
+<p>This influx computing tool is made possible by the team effort of:
+ <ul>
+  <li>Prof. Dr. <a href="http://tang.eece.wustl.edu/">Yinjie J. Tang</a>, Dept. of Energy, Environmental and Chemical Engineering, Washington University in St. Louis, St. Louis, Missouri, USA</li>
+  <li>Prof. Dr. <a href="http://www.cse.wustl.edu/~ychen/">Yixin Chen</a>, Dept. of Computer Science and Engineering, Washington University in St. Louis, St. Louis, Missouri, USA</li>
+  <li>Prof. Dr. <a href="http://fsbao.net">Forrest Sheng Bao</a>, Dept. of Electrical and Computer Engineering, University of Akron, Akron, Ohio, USA</li>
+  <li>Stephen Gang Wu, Ph.D. candidate, Dept. of Energy, Environmental and Chemical Engineering, Washington University in St. Louis, St. Louis, Missouri, USA</li>
+</ul> 
+</p>
+
+
+<p>This project is supported by NSF under project <a href="http://www.nsf.gov/awardsearch/showAward?AWD_ID=1356669">No.1356669</a>
+<br>
+<img src="http://cse.wustl.edu/ContentImages/News%20Images/_w/NSF_newsart_72_jpg.jpg" width="100" height="100"></p>
 
 </body>
 

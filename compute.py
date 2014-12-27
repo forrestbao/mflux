@@ -3,7 +3,9 @@
 import cgi
 form  = cgi.FieldStorage() # instantiate only once!
 
-Feature_names =  ["Purpose", "Reactor", "Species", "Nutrient", "Method", "Energy", "MFA", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
+#Feature_names =  ["Purpose", "Reactor", "Species", "Nutrient", "Method", "Energy", "MFA", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
+Feature_names =  ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "MFA", "Energy", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
+
 
 Features = {}
 
@@ -30,22 +32,10 @@ for Feature_name in Feature_names:
     %s is %s, 
      """ % (Feature_name, Feature_value)
 
-# Generate substrate matrix
-Substrates = {i:0 for i in range(1, 27+1)} # substrate values, initialization
-Substrates[int(Features["Substrate_first"])]= Features["Ratio_first"]
-Substrates[int(Features["Substrate_sec"])]= Features["Ratio_sec"]
-
-# Form the feature vector
-Vector = [Features[Feature_name] for Feature_name in ["Purpose", "Reactor", "Species", "Nutrient", "Method", "Energy", "MFA", "Growth_rate", "Substrate_uptake_rate"]]
-Vector += [Substrates[i] for i in range(1, 16+1)]
-Vector.append(Features["Substrate_other"])
-
-print """\
-<h2>Influx values based on given parameters:</h2>
-"""# % len(Vector)  #"\t".join(map(str, Vector))
-
 import libflux 
-libflux.test("hello, world")
+Vector, Substrates = libflux.process_input(Features)
+
+#libflux.test("hello, world")
 Influxes = libflux.predict(Vector, Substrates) # use the feature vector to predict influx values 
 
 print """\
