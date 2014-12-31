@@ -23,6 +23,7 @@ def read_spreadsheet(File):
     AA is 26 for 0-index
     BA is 32 for 0-index
     """
+
     Training_data = {}
     for i in range(1, 29+1):# prepare the data structure
         Training_data[i] = ([],[]) # the 1st list is the features and the 2nd the labels for i-th influx
@@ -46,7 +47,7 @@ def read_spreadsheet(File):
             try:
                 Vector = map(float, Vector)
             except ValueError:
-                print Vector
+                print Vector    
 
             # Now create the dictionaries we need, one dictionary for each influx
             for i in range(1, 29+1):
@@ -62,6 +63,26 @@ def read_spreadsheet(File):
                 Training_data[i][1].append(float(Label)) # add one label
 
     return Training_data
+
+def one_hot_encode_features(Training_data):
+    """Use one-hot encoder to represent categorical features
+
+    Feature from 1 to 7 are categorical features: 
+    Species, reactor, nutrient, oxygen, engineering method, MFA and extra energy
+
+    """
+    import sklearn.preprocessing
+    import numpy
+    Encoded_training_data, Encoders = {}, {}
+    for vID, (Vectors, Targets) in Training_data.iteritems():
+            Encoder = sklearn.preprocessing.OneHotEncoder()
+            Vectors = numpy.array(Vectors) # 2-D array
+            Encoded_Categorical_Features = Encoder.fit_transform(Vectors[:, 0:6+1])
+            Encoded_Categorical_Features = Encoded_Categorical_Features.toarray()
+            Encoded_Vectors = numpy.hstack((Encoded_Categorical_Features, Vectors[:, 6+1:]))
+            Encoded_training_data[vID] = (Encoded_Vectors, Targets)
+            Encoders[vID] = Encoder
+    return Encoded_training_data, Encoders
 
 def standardize_features(Training_data):
     """Standarize feature vectors for each influx
@@ -92,7 +113,7 @@ def train_model(Training_data):
     Models = {}
     for i in range(1, 29+1):
         (Vectors, Label) = Training_data[i]
-        Model = KNeighborsRegressor(n_neighbors=4) # initialize the model
+        Model = KNeighborsRegressor(n_neighbors=5, weights='distance') # initialize the model
         Model.fit(Vectors, Label) # train the model
         Models[i] = Model
 
@@ -100,8 +121,11 @@ def train_model(Training_data):
 
 if __name__ == "__main__":
     Training_data = read_spreadsheet("1111_forrest.csv")
-    Std_training_data, Scalers = standardize_features(Training_data)
+    Encoded_training_data, Encoders = one_hot_encode_features(Training_data)
+    Std_training_data, Scalers = standardize_features(Encoded_training_data)
     Models = train_model(Std_training_data)
     import cPickle
     cPickle.dump(Models, open("models_knn.p", "wb"))
     cPickle.dump(Scalers, open("scalers.p", "wb"))
+    cPickle.dump(Encoders, open("encoders.p", "wb"))
+    cPickle.dump(Training_data, open("training_data.p", "wb"))

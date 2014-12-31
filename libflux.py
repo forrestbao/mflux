@@ -24,19 +24,19 @@ def process_input(Features):
     # Generate substrate matrix
     import collections
     Substrates = collections.OrderedDict([(i,0) for i in range(1, Num_substrates+1)]) # substrate values, initialization
-    Substrates[int(Features["Substrate_first"])]= Features["Ratio_first"]
-    Substrates[int(Features["Substrate_sec"])]= Features["Ratio_sec"]
+    Substrates[int(Features["Substrate_first"])] += Features["Ratio_first"]
+    Substrates[int(Features["Substrate_sec"])] += Features["Ratio_sec"]
 
     # Form the feature vector
     Vector = [Features[Feature_name] for Feature_name in ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "MFA", "Energy", "Growth_rate", "Substrate_uptake_rate"]]
     Vector += [Substrates[i] for i in range(1, Num_substrates+1)]
-    Vector.append(Features["Substrate_other"])
+    Vector.append(Features["Substrate_other"]) # Other carbon source
 
     # Print debug info
 
     Substrate_names = ["glucose", "fructose", "galactose", "gluconate", "glutamate", "citrate", "xylose", "succinate", "malate", "lactate", "pyruvate", "glycerol", "acetate",  "NaHCO3"]
     Substrate_dict = collections.OrderedDict([(i+1,Name) for i, Name in enumerate(Substrate_names)])
-    print "<p>Feature Vector (prescaled):", Vector, "</p>"
+    print "<p>Feature Vector (pre-one-hot-encoding and prescaled):", Vector, "</p>"
     print "<p>in which the substrates ratios are:", [(Substrate_dict[Index],Ratio) for Index, Ratio in Substrates.iteritems()], "</p>"
     print "<p>Feature vector size is ", len(Vector), "</p>"
 
@@ -70,9 +70,11 @@ def adjust_influxes(Influxes, Substrates):
 def predict(Vector, Substrates):
     """ Predict and adjust all influx values
 
-    Vector: list of floats, the feature vector, including substrate matrix, size = 24
+    Vector: 1-D list of floats, the feature vector, including substrate matrix, size = 24
     Substrates: dict of floats, 1-indexed part of Feature_vector, ratio of substrates
     Models: dict of models, 1-indexed, 29 moddels for 29 influxes. 
+
+    Calls adjust_influxes() to compute dependent influxes. 
     """
     import cPickle
     import time
@@ -80,11 +82,28 @@ def predict(Vector, Substrates):
 
     Models = cPickle.load(open("models_knn.p", "r"))
     Scalers = cPickle.load(open("scalers.p", "r"))
-    print "Models and Scalers loaded" 
+    Encoders = cPickle.load(open("encoders.p", "r"))
+    Training_data =  cPickle.load(open("training_data.p", "r"))
+
+    print "Models, Scalers and one-hot Encoder loaded..." 
     #  Models: dict, keys are influx indexes and values are regression models
 
     T = time.clock()
-    Influxes = {Index:Model.predict(Scalers[Index].transform(Vector))[0] for Index, Model in Models.iteritems()}# use dictionary because influx IDs are not consecutive
+    Influxes = {}
+#    Influxes = {Iundex:Model.predict(Scalers[Index].transform(Vector))[0] for Index, Model in Models.iteritems()}# use dictionary because influx IDs are not consecutive
+
+    for vID, Model in Models.iteritems():
+        Vector_local = list(Vector) # make a copy; o/w Vector will be changed in one-hot encoding and standarization for different models
+        Vector_local[:6+1] = Encoders[vID].transform([Vector[:6+1]]).toarray().tolist()[0] # one-hot encoding for categorical features
+        Vector_local = Scalers[vID].transform(Vector_local) # standarization
+        Distance_NN, Index_NN = Model.kneighbors(Vector_local, n_neighbors=1, return_distance=True) # find nearest neighbor
+#        print  Distance_NN, Index_NN , "<br>"
+        if Distance_NN[0] == 0 : # there is a direct entry in model
+            print "Direct entry in database"
+            Influxes[vID] = Training_data[vID][1][Index_NN[0]] # the Training_data[vID] is a tuple (Feature_matrix, Targets)
+        else:
+            Influxes[vID] = Model.predict(Vector_local)[0]
+    
     Influxes = adjust_influxes(Influxes, Substrates)
     print_influxes(Influxes)
 
