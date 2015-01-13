@@ -165,7 +165,6 @@ if __name__ == "__main__":
     Std_training_data, Scalers = standardize_features(Encoded_training_data)
 
     cross_validation_model(Std_training_data, KNN_MODEL)
-    # FIXME: ValueError: Can't handle mix of continuous and multiclass
     cross_validation_model(Std_training_data, SVR_MODEL)
 
     Models = train_model(Std_training_data)
