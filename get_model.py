@@ -5,7 +5,7 @@ import cPickle
 import numpy
 from sklearn import cross_validation, preprocessing
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.svm import SVC
+from sklearn.svm import SVR
 
 
 class RegressionModel(object):
@@ -21,7 +21,7 @@ class RegressionModel(object):
 
 KNN_MODEL = RegressionModel("KNeighborsRegressor", n_neighbors=5,
                             weights="distance")
-SVC_MODEL = RegressionModel("SVC", kernel="linear", C=1)
+SVR_MODEL = RegressionModel("SVR", kernel="linear", C=1)
 
 
 def read_spreadsheet(File):
@@ -146,7 +146,8 @@ def cross_validation_model(training_data, model):
     print("v\tmodel\tscore/accuracy")
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
-        # FIXME: always ran into Value error (nan)
+        label = numpy.asarray(label)
+        # # FIXME: always ran into Value error (nan)
         # x_train, x_test, y_train, y_test = cross_validation.train_test_split(
         #     vectors, label, test_size=0.3, random_state=0)
         # clf = model.model.fit(x_train, y_train)
@@ -165,7 +166,7 @@ if __name__ == "__main__":
 
     cross_validation_model(Std_training_data, KNN_MODEL)
     # FIXME: ValueError: Can't handle mix of continuous and multiclass
-    cross_validation_model(Std_training_data, SVC_MODEL)
+    cross_validation_model(Std_training_data, SVR_MODEL)
 
     Models = train_model(Std_training_data)
     cPickle.dump(Models, open("models_knn.p", "wb"))
