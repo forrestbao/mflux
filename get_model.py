@@ -1,6 +1,5 @@
 # extract the training data from spreadsheet
 
-import traceback, sys, code
 import cPickle
 
 import numpy
