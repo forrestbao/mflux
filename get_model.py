@@ -9,24 +9,41 @@ from sklearn.svm import SVR
 
 
 class RegressionModel(object):
-    """A help class to store model's name and the actual model.
-    """
+    """A help class to store model's name and the actual model."""
+
     def __init__(self, name, **kwargs):
         self.name = name
         self.model = eval(name)(**kwargs)
 
     def __str__(self):
-        return self.name
+        return "{} ({})".format(self.name, self.kwargs)
 
 
-KNN_MODEL = RegressionModel("KNeighborsRegressor", n_neighbors=5,
-                            weights="distance")
+class RegressionModelFactory(object):
+    """A factory to create new instances of RegressionModel."""
+
+    def __init__(self, name, **kwargs):
+        self.name = name
+        self.kwargs = kwargs
+
+    def __str__(self):
+        return "{} ({})".format(self.name, self.kwargs)
+
+    def __call__(self):
+        """Create a new RegressionModel instance each time."""
+        return RegressionModel(self.name, **self.kwargs)
+
+
+knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10,
+                                       weights="distance")
+svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10)
+
 KNN_PARAMS = {
     "n_neighbors": [1, 5, 10],
     "weights": ["uniform", "distance"],
     "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
 }
-SVR_MODEL = RegressionModel("SVR", kernel="linear", C=1)
+
 SVR_PARAMS = {
     "C": [1, 10, 100, 1000],
     "epsilon": [0.1, 0.5],
@@ -145,35 +162,36 @@ def train_model(training_data):
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
-        model = KNN_MODEL.model
+        model = knn_model_gen().model
         model.fit(vectors, label) # train the model
         models[i] = model
         return models
 
 
-def cross_validation_model(training_data, model):
+def cross_validation_model(training_data, model_gen):
     """Do a cross validation on a model using the given training data.
 
     :param training_data: A dict with keys as v, and values as [vectors, label].
-    :param model: An instance of RegressionModel
+    :param model_gen: A RegressionModel generator.
 
     """
-    print("model: {}".format(model))
+    print("model: {}".format(model_gen))
     print("v\tscore_accuracy")
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         label = numpy.asarray(label)
+        model = model_gen()
         scores = cross_validation.cross_val_score(model.model, vectors, label,
                                                   cv=4)
         print("{}\t{} (+/- {})"
               .format(i, scores.mean(), scores.std() * 2))
 
 
-def grid_search_cv(training_data, model, params):
+def grid_search_cv(training_data, model_gen, params):
     """Do a grid search to find best params for the given model.
 
     :param training_data: A dict with keys as v, and values as [vectors, label].
-    :param model: An instance of RegressionModel.
+    :param model_gen: A RegressionModel generator.
     :param params: All parameters the grid search needs to find. It's a subset
         of all the optional params on each model. i.e. for KNeighborsRegressor
         model, it's a subset of
@@ -191,13 +209,14 @@ def grid_search_cv(training_data, model, params):
         ```
 
     """
-    print("model: {}".format(model))
-    print("v\tbest_estimator")
+    print("model: {}".format(model_gen))
+    print("v\tbest_score\tbest_params")
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
+        model = model_gen()
         clf = grid_search.GridSearchCV(model.model, params)
         clf.fit(vectors, label)
-        print("{}\t{}".format(i, clf.best_estimator_))
+        print("{}\t{}\t{}".format(i, clf.best_score_, clf.best_params_))
 
 
 if __name__ == "__main__":
@@ -205,11 +224,11 @@ if __name__ == "__main__":
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
 
-    cross_validation_model(std_training_data, KNN_MODEL)
-    cross_validation_model(std_training_data, SVR_MODEL)
+    # cross_validation_model(std_training_data, knn_model_gen)
+    # cross_validation_model(std_training_data, svr_model_gen)
 
-    grid_search_cv(std_training_data, KNN_MODEL, KNN_PARAMS)
-    # grid_search_cv(std_training_data, SVR_MODEL, SVR_PARAMS)
+    grid_search_cv(std_training_data, knn_model_gen, KNN_PARAMS)
+    grid_search_cv(std_training_data, svr_model_gen, SVR_PARAMS)
 
     models = train_model(std_training_data)
     cPickle.dump(models, open("models_knn.p", "wb"))
