@@ -33,13 +33,13 @@ SVR_PARAMS = {
     # "kernel": ["linear", "poly", "rbf", "sigmoid", "precomputed"],
 }
 
-def read_spreadsheet(File):
+def read_spreadsheet(filename):
     """Turn spreadsheet into matrixes for training
 
     Returns
     ========
 
-	Training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
+	training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
                    values are 2-tuples (Feature, Label), where
                    Feature is a 2-D list, each sublist is 24-D feature vector for one sample
                    and
@@ -51,90 +51,90 @@ def read_spreadsheet(File):
     EMPs are N.A. for some samples, training features were dropped for them.
     That's why we need one training feature matrix for each EMP.
 
-    We have 29 influxes values to predict and thus the index/key for Training_data goes from 1 to 29
+    We have 29 influxes values to predict and thus the index/key for training_data goes from 1 to 29
 
     AA is 26 for 0-index
     BA is 32 for 0-index
     """
 
-    Training_data = {}
+    training_data = {}
     for i in range(1, 29+1):# prepare the data structure
-        Training_data[i] = ([],[]) # the 1st list is the features and the 2nd the labels for i-th influx
+        training_data[i] = ([],[]) # the 1st list is the features and the 2nd the labels for i-th influx
 
-    with open(File, 'r') as F:
-        for Line in F.readlines():
-            Line = Line.strip()
-            Line = Line.split("\t")
-            Vector = Line[2:26+1] # training vector, from Purpose (C) to Other carbon (AA).
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            line = line.strip()
+            line = line.split("\t")
+            vector = line[2:26+1] # training vector, from Purpose (C) to Other carbon (AA).
                               # one empty column
 
-            if "" in Vector:
-                Vector.remove("")
-            if not Vector :
-                print Line
+            if "" in vector:
+                vector.remove("")
+            if not vector :
+                print line
                 exit()
 
-            Labels = Line[26+3: 26+3+26+5] # AD to BF, v1 to v29
+            labels = line[26+3: 26+3+26+5] # AD to BF, v1 to v29
 #            print Labels
 
             try:
-                Vector = map(float, Vector)
+                vector = map(float, vector)
             except ValueError:
-                print Vector
+                print vector
 
             # Now create the dictionaries we need, one dictionary for each influx
             for i in range(1, 29+1):
-                Label = Labels[i-1]
+                label = labels[i-1]
                 try:
-                    Label = float(Label)
+                    label = float(label)
                 except ValueError:
 #                    print Label, "=>"
 #                    print Line
                     continue # this label for this influx is not numeric
 
-                Training_data[i][0].append(Vector) # add a row to feature vectors
-                Training_data[i][1].append(float(Label)) # add one label
+                training_data[i][0].append(vector) # add a row to feature vectors
+                training_data[i][1].append(float(label)) # add one label
 
-    return Training_data
+    return training_data
 
 
-def one_hot_encode_features(Training_data):
+def one_hot_encode_features(training_data):
     """Use one-hot encoder to represent categorical features
 
     Feature from 1 to 7 are categorical features:
     Species, reactor, nutrient, oxygen, engineering method, MFA and extra energy
 
     """
-    Encoded_training_data, Encoders = {}, {}
-    for vID, (Vectors, Targets) in Training_data.iteritems():
-            Encoder = preprocessing.OneHotEncoder()
-            Vectors = numpy.array(Vectors) # 2-D array
-            Encoded_Categorical_Features = Encoder.fit_transform(Vectors[:, 0:6+1])
-            Encoded_Categorical_Features = Encoded_Categorical_Features.toarray()
-            Encoded_Vectors = numpy.hstack((Encoded_Categorical_Features, Vectors[:, 6+1:]))
-            Encoded_training_data[vID] = (Encoded_Vectors, Targets)
-            Encoders[vID] = Encoder
-    return Encoded_training_data, Encoders
+    encoded_training_data, encoders = {}, {}
+    for vid, (vectors, targets) in training_data.iteritems():
+            encoder = preprocessing.OneHotEncoder()
+            vectors = numpy.array(vectors) # 2-D array
+            encoded_categorical_features = encoder.fit_transform(vectors[:, 0:6+1])
+            encoded_categorical_features = encoded_categorical_features.toarray()
+            encoded_vectors = numpy.hstack((encoded_categorical_features, vectors[:, 6+1:]))
+            encoded_training_data[vid] = (encoded_vectors, targets)
+            encoders[vid] = encoder
+    return encoded_training_data, encoders
 
 
-def standardize_features(Training_data):
+def standardize_features(training_data):
     """Standarize feature vectors for each influx
 
     Later, a new feature vector X for i-th influx can be normalized as:
     Scalers[i].transform(X)
 
     """
-    Std_training_data, Scalers = {}, {}
-    for vID, (Vectors, Labels) in Training_data.iteritems():
-        Vectors_scaled = preprocessing.scale(Vectors)
-        Std_training_data[vID] = ( Vectors, Labels)
+    std_training_data, scalers = {}, {}
+    for vid, (vectors, labels) in training_data.iteritems():
+        vectors_scaled = preprocessing.scale(vectors)
+        std_training_data[vid] = ( vectors, labels)
 
-        Scalers[vID] = preprocessing.StandardScaler().fit(Vectors)
+        scalers[vid] = preprocessing.StandardScaler().fit(vectors)
 
-    return Std_training_data, Scalers
+    return std_training_data, scalers
 
 
-def train_model(Training_data):
+def train_model(training_data):
     """Train a regression model for each of the 29 influxes
 
     Returns
@@ -142,48 +142,77 @@ def train_model(Training_data):
     Models: dict, keys are influx indexes and values are regression models
 
     """
-    Models = {}
+    models = {}
     for i in range(1, 29+1):
-        (Vectors, Label) = Training_data[i]
-        Model = KNN_MODEL.model
-        Model.fit(Vectors, Label) # train the model
-        Models[i] = Model
-        return Models
+        vectors, label = training_data[i]
+        model = KNN_MODEL.model
+        model.fit(vectors, label) # train the model
+        models[i] = model
+        return models
 
 
 def cross_validation_model(training_data, model):
-    print("v\tmodel\tscore_accuracy")
+    """Do a cross validation on a model using the given training data.
+
+    :param training_data: A dict with keys as v, and values as [vectors, label].
+    :param model: An instance of RegressionModel
+
+    """
+    print("model: {}".format(model))
+    print("v\tscore_accuracy")
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         label = numpy.asarray(label)
         scores = cross_validation.cross_val_score(model.model, vectors, label,
                                                   cv=4)
-        print("{}\t{}\t{} (+/- {})"
-              .format(i, model, scores.mean(), scores.std() * 2))
+        print("{}\t{} (+/- {})"
+              .format(i, scores.mean(), scores.std() * 2))
 
 
 def grid_search_cv(training_data, model, params):
-    print("v\tmodel\tbest_estimator")
+    """Do a grid search to find best params for the given model.
+
+    :param training_data: A dict with keys as v, and values as [vectors, label].
+    :param model: An instance of RegressionModel.
+    :param params: All parameters the grid search needs to find. It's a subset
+        of all the optional params on each model. i.e. for KNeighborsRegressor
+        model, it's a subset of
+
+        ```
+        {
+            "n_neighbors": [1, 5, 10, ...],
+            "weights": ["uniform", ...],
+            "algorithm": ["auto", ...],
+            "leaf_size": [30, 50, ...],
+            "p": [2, 5, ...],
+            "metric": ["minkowski", ...],
+            "metric_params": [...],
+        }
+        ```
+
+    """
+    print("model: {}".format(model))
+    print("v\tbest_estimator")
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         clf = grid_search.GridSearchCV(model.model, params)
         clf.fit(vectors, label)
-        print("{}\t{}\t{}".format(i, model, clf.best_estimator_))
+        print("{}\t{}".format(i, clf.best_estimator_))
 
 
 if __name__ == "__main__":
-    Training_data = read_spreadsheet("1111_forrest.csv")
-    Encoded_training_data, Encoders = one_hot_encode_features(Training_data)
-    Std_training_data, Scalers = standardize_features(Encoded_training_data)
+    training_data = read_spreadsheet("1111_forrest.csv")
+    encoded_training_data, encoders = one_hot_encode_features(training_data)
+    std_training_data, scalers = standardize_features(encoded_training_data)
 
-    cross_validation_model(Std_training_data, KNN_MODEL)
-    cross_validation_model(Std_training_data, SVR_MODEL)
+    cross_validation_model(std_training_data, KNN_MODEL)
+    cross_validation_model(std_training_data, SVR_MODEL)
 
-    grid_search_cv(Std_training_data, KNN_MODEL, KNN_PARAMS)
-    grid_search_cv(Std_training_data, SVR_MODEL, SVR_PARAMS)
+    grid_search_cv(std_training_data, KNN_MODEL, KNN_PARAMS)
+    # grid_search_cv(std_training_data, SVR_MODEL, SVR_PARAMS)
 
-    Models = train_model(Std_training_data)
-    cPickle.dump(Models, open("models_knn.p", "wb"))
-    cPickle.dump(Scalers, open("scalers.p", "wb"))
-    cPickle.dump(Encoders, open("encoders.p", "wb"))
-    cPickle.dump(Training_data, open("training_data.p", "wb"))
+    models = train_model(std_training_data)
+    cPickle.dump(models, open("models_knn.p", "wb"))
+    cPickle.dump(scalers, open("scalers.p", "wb"))
+    cPickle.dump(encoders, open("encoders.p", "wb"))
+    cPickle.dump(training_data, open("training_data.p", "wb"))
