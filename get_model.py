@@ -3,7 +3,7 @@
 import cPickle
 
 import numpy
-from sklearn import cross_validation, preprocessing
+from sklearn import cross_validation, preprocessing, grid_search
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 
@@ -21,8 +21,17 @@ class RegressionModel(object):
 
 KNN_MODEL = RegressionModel("KNeighborsRegressor", n_neighbors=5,
                             weights="distance")
+KNN_PARAMS = {
+    "n_neighbors": [1, 5, 10],
+    "weights": ["uniform", "distance"],
+    "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
+}
 SVR_MODEL = RegressionModel("SVR", kernel="linear", C=1)
-
+SVR_PARAMS = {
+    "C": [1, 10, 100, 1000],
+    "epsilon": [0.1, 0.5],
+    # "kernel": ["linear", "poly", "rbf", "sigmoid", "precomputed"],
+}
 
 def read_spreadsheet(File):
     """Turn spreadsheet into matrixes for training
@@ -153,6 +162,15 @@ def cross_validation_model(training_data, model):
               .format(i, model, scores.mean(), scores.std() * 2))
 
 
+def grid_search_cv(training_data, model, params):
+    print("v\tmodel\tbest_estimator")
+    for i in range(1, 29 + 1):
+        vectors, label = training_data[i]
+        clf = grid_search.GridSearchCV(model.model, params)
+        clf.fit(vectors, label)
+        print("{}\t{}\t{}".format(i, model, clf.best_estimator_))
+
+
 if __name__ == "__main__":
     Training_data = read_spreadsheet("1111_forrest.csv")
     Encoded_training_data, Encoders = one_hot_encode_features(Training_data)
@@ -160,6 +178,9 @@ if __name__ == "__main__":
 
     cross_validation_model(Std_training_data, KNN_MODEL)
     cross_validation_model(Std_training_data, SVR_MODEL)
+
+    grid_search_cv(Std_training_data, KNN_MODEL, KNN_PARAMS)
+    grid_search_cv(Std_training_data, SVR_MODEL, SVR_PARAMS)
 
     Models = train_model(Std_training_data)
     cPickle.dump(Models, open("models_knn.p", "wb"))
