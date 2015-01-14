@@ -147,13 +147,6 @@ def cross_validation_model(training_data, model):
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         label = numpy.asarray(label)
-        # FIXME: always ran into Value error (nan) for KNN
-        # x_train, x_test, y_train, y_test = cross_validation.train_test_split(
-        #     vectors, label, test_size=0.3, random_state=0)
-        # clf = model.model.fit(x_train, y_train)
-        # score = clf.score(x_test, y_test)
-        # print("{}\t{}\t{}".format(i, model, score))
-
         scores = cross_validation.cross_val_score(model.model, vectors, label,
                                                   cv=4)
         print("{}\t{}\t{} (+/- {})"
