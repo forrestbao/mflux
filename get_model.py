@@ -6,6 +6,7 @@ import numpy
 from sklearn import cross_validation, preprocessing, grid_search
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
 
 
 class RegressionModel(object):
@@ -16,7 +17,7 @@ class RegressionModel(object):
         self.model = eval(name)(**kwargs)
 
     def __str__(self):
-        return "{} ({})".format(self.name, self.kwargs)
+        return self.name
 
 
 class RegressionModelFactory(object):
@@ -37,6 +38,8 @@ class RegressionModelFactory(object):
 knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10,
                                        weights="distance")
 svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10)
+dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor",
+                                         random_state=0)
 
 KNN_PARAMS = {
     "n_neighbors": [1, 5, 10],
@@ -47,8 +50,39 @@ KNN_PARAMS = {
 SVR_PARAMS = {
     "C": [1, 10, 100, 1000],
     "epsilon": [0.1, 0.5],
-    # "kernel": ["linear", "poly", "rbf", "sigmoid", "precomputed"],
+    "kernel": [
+        "linear",
+        "rbf",
+        # "poly",
+        # "sigmoid",
+        # "precomputed"
+    ],
+    "degree": [3, 5, 10],
+    "gamma": [0, 0.2, 0.5],
+    "random_state": [0, 1, 10, 100],
 }
+
+DTREE_PARAMS = {
+    "criterion": ["mse"],
+    "splitter": ["best"],
+    "min_samples_split": [2, 3, 5, 10],
+    "min_samples_leaf": [1, 2, 5],
+    "max_features": ["auto", "sqrt", "log2", ],
+    "random_state": [0, 1, 10, 100],
+}
+
+training_models = [
+    knn_model_gen,
+    svr_model_gen,
+    dtree_model_gen,
+]
+
+TRAINING_PARMAS = [
+    (knn_model_gen, KNN_PARAMS),
+    (svr_model_gen, SVR_PARAMS),
+    (dtree_model_gen, DTREE_PARAMS),
+]
+
 
 def read_spreadsheet(filename):
     """Turn spreadsheet into matrixes for training
@@ -219,16 +253,20 @@ def grid_search_cv(training_data, model_gen, params):
         print("{}\t{}\t{}".format(i, clf.best_score_, clf.best_params_))
 
 
+def get_std_training_data(filename):
+
+
+    return std_training_data, scalers
+
+
 if __name__ == "__main__":
     training_data = read_spreadsheet("1111_forrest.csv")
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
 
-    # cross_validation_model(std_training_data, knn_model_gen)
-    # cross_validation_model(std_training_data, svr_model_gen)
+    [cross_validation_model(std_training_data, m) for m in training_models]
 
-    grid_search_cv(std_training_data, knn_model_gen, KNN_PARAMS)
-    grid_search_cv(std_training_data, svr_model_gen, SVR_PARAMS)
+    [grid_search_cv(std_training_data, k, v) for k, v in TRAINING_PARMAS]
 
     models = train_model(std_training_data)
     cPickle.dump(models, open("models_knn.p", "wb"))
