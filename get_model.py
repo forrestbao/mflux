@@ -67,9 +67,11 @@ DTREE_PARAMS = {
     "splitter": ["best"],
     "min_samples_split": [2, 3, 5, 10],
     "min_samples_leaf": [1, 2, 5],
-    "max_features": ["auto", "sqrt", "log2", ],
+    "max_features": ["auto", "sqrt", "log2"],
     "random_state": [0, 1, 10, 100],
 }
+
+SCORING = ["r2", "mean_absolute_error", "mean_squared_error"]
 
 training_models = [
     knn_model_gen,
@@ -244,19 +246,15 @@ def grid_search_cv(training_data, model_gen, params):
 
     """
     print("model: {}".format(model_gen))
-    print("v\tbest_score\tbest_params")
+    print("v\tscoring\tbest_score\tbest_params")
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         model = model_gen()
-        clf = grid_search.GridSearchCV(model.model, params)
-        clf.fit(vectors, label)
-        print("{}\t{}\t{}".format(i, clf.best_score_, clf.best_params_))
-
-
-def get_std_training_data(filename):
-
-
-    return std_training_data, scalers
+        for scoring in SCORING:
+            clf = grid_search.GridSearchCV(model.model, params, scoring=scoring)
+            clf.fit(vectors, label)
+            print("{}\t{}\t{}\t{}".format(i, scoring, clf.best_score_,
+                                          clf.best_params_))
 
 
 if __name__ == "__main__":
