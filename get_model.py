@@ -71,7 +71,7 @@ DTREE_PARAMS = {
     "random_state": [0, 1, 10, 100],
 }
 
-SCORING = ["r2", "mean_absolute_error", "mean_squared_error"]
+SCORINGS = ["r2", "mean_absolute_error", "mean_squared_error"]
 
 training_models = [
     knn_model_gen,
@@ -250,7 +250,7 @@ def grid_search_cv(training_data, model_gen, params):
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         model = model_gen()
-        for scoring in SCORING:
+        for scoring in SCORINGS:
             clf = grid_search.GridSearchCV(model.model, params, scoring=scoring)
             clf.fit(vectors, label)
             print("{}\t{}\t{}\t{}".format(i, scoring, clf.best_score_,
