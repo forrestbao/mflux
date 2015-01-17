@@ -34,58 +34,6 @@ class RegressionModelFactory(object):
         """Create a new RegressionModel instance each time."""
         return RegressionModel(self.name, **self.kwargs)
 
-
-knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10,
-                                       weights="distance")
-svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10)
-dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor",
-                                         random_state=0)
-
-KNN_PARAMS = {
-    "n_neighbors": [1, 5, 10],
-    "weights": ["uniform", "distance"],
-    "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
-}
-
-SVR_PARAMS = {
-    "C": [1, 10, 100, 1000],
-    "epsilon": [0.1, 0.5],
-    "kernel": [
-        "linear",
-        "rbf",
-        # "poly",
-        # "sigmoid",
-        # "precomputed"
-    ],
-    "degree": [3, 5, 10],
-    "gamma": [0, 0.2, 0.5],
-    "random_state": [0, 1, 10, 100],
-}
-
-DTREE_PARAMS = {
-    "criterion": ["mse"],
-    "splitter": ["best"],
-    "min_samples_split": [2, 3, 5, 10],
-    "min_samples_leaf": [1, 2, 5],
-    "max_features": ["auto", "sqrt", "log2"],
-    "random_state": [0, 1, 10, 100],
-}
-
-SCORINGS = ["r2", "mean_absolute_error", "mean_squared_error"]
-
-training_models = [
-    knn_model_gen,
-    svr_model_gen,
-    dtree_model_gen,
-]
-
-TRAINING_PARMAS = [
-    (knn_model_gen, KNN_PARAMS),
-    (svr_model_gen, SVR_PARAMS),
-    (dtree_model_gen, DTREE_PARAMS),
-]
-
-
 def read_spreadsheet(filename):
     """Turn spreadsheet into matrixes for training
 
@@ -223,7 +171,7 @@ def cross_validation_model(training_data, model_gen):
               .format(i, scores.mean(), scores.std() * 2))
 
 
-def grid_search_cv(training_data, model_gen, params):
+def grid_search_cv(training_data, model_gen, params, SCORINGS, CORE_NUM, FOLDS):
     """Do a grid search to find best params for the given model.
 
     :param training_data: A dict with keys as v, and values as [vectors, label].
@@ -251,10 +199,72 @@ def grid_search_cv(training_data, model_gen, params):
         vectors, label = training_data[i]
         model = model_gen()
         for scoring in SCORINGS:
-            clf = grid_search.GridSearchCV(model.model, params, scoring=scoring)
+            clf = grid_search.GridSearchCV(model.model, params, scoring=scoring, n_jobs=CORE_NUM, cv=FOLDS)
             clf.fit(vectors, label)
             print("{}\t{}\t{}\t{}".format(i, scoring, clf.best_score_,
                                           clf.best_params_))
+
+def grid_search_tasks(std_training_data):
+    """One function to run grid search on different regressors
+
+    CORE_NUM: int, number of CPU cores to be used
+    FOLDS: int, number of folds for cross validate
+
+    """
+    knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
+    svr_model_gen = RegressionModelFactory("SVR", kernel="rbf", C=10)
+    dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
+
+    KNN_PARAMS = {
+        "n_neighbors": [1, 2, 3, 4, 5, 10],
+        "weights": ["uniform", "distance"],
+        "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
+    }
+
+    SVR_PARAMS = {
+        "C": [1, 10, 100, 1000],
+        "epsilon": [0.1, 0.5],
+        "kernel": [
+        "linear",
+        "rbf",
+        # "poly",
+        # "sigmoid",
+        # "precomputed"
+        ],
+        "degree": [3, 5, 10],
+        "gamma": [0, 0.2, 0.5],
+        "random_state": [0, 1, 10, 100],
+    }
+
+    DTREE_PARAMS = {
+        "criterion": ["mse"],
+        "splitter": ["best"],
+        "min_samples_split": [2, 3, 5, 10],
+        "min_samples_leaf": [1, 2, 5],
+        "max_features": ["auto", "sqrt", "log2"],
+        "random_state": [0, 1, 10, 100],
+    }
+
+    SCORINGS = ["mean_squared_error", 
+#                "mean_absolute_error"
+    ]
+
+    training_models = [
+        knn_model_gen,
+        svr_model_gen,
+        dtree_model_gen,
+    ]
+
+    TRAINING_PARMAS = [
+        (knn_model_gen, KNN_PARAMS),
+#        (svr_model_gen, SVR_PARAMS),
+ #      (dtree_model_gen, DTREE_PARAMS),
+    ]
+
+    FOLDS = 8
+    CORE_NUM = 2
+
+    [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
 
 if __name__ == "__main__":
@@ -262,12 +272,12 @@ if __name__ == "__main__":
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
 
-    [cross_validation_model(std_training_data, m) for m in training_models]
+#    [cross_validation_model(std_training_data, m) for m in training_models]
 
-    [grid_search_cv(std_training_data, k, v) for k, v in TRAINING_PARMAS]
+    grid_search_tasks(std_training_data)
 
-    models = train_model(std_training_data)
-    cPickle.dump(models, open("models_knn.p", "wb"))
-    cPickle.dump(scalers, open("scalers.p", "wb"))
-    cPickle.dump(encoders, open("encoders.p", "wb"))
-    cPickle.dump(training_data, open("training_data.p", "wb"))
+#    models = train_model(std_training_data)
+#    cPickle.dump(models, open("models_knn.p", "wb"))
+#    cPickle.dump(scalers, open("scalers.p", "wb"))
+#    cPickle.dump(encoders, open("encoders.p", "wb"))
+#    cPickle.dump(training_data, open("training_data.p", "wb"))
