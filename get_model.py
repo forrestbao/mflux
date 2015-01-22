@@ -211,6 +211,7 @@ def grid_search_tasks(std_training_data):
     FOLDS: int, number of folds for cross validate
 
     """
+	import numpy
     knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
     svr_model_gen = RegressionModelFactory("SVR", kernel="rbf", C=10)
     dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
@@ -222,17 +223,17 @@ def grid_search_tasks(std_training_data):
     }
 
     SVR_PARAMS = {
-        "C": [1, 10, 100, 1000],
-        "epsilon": [0.1, 0.5],
+        "C": 10.0 ** numpy.arange(-3,5),
+        "epsilon": [0.1, 0.2, 0.3, 0.4, 0.5, 1.0],
         "kernel": [
         "linear",
         "rbf",
-        # "poly",
-        # "sigmoid",
+        "poly",
+        "sigmoid",
         # "precomputed"
         ],
         "degree": [3, 5, 10],
-        "gamma": [0, 0.2, 0.5],
+        "gamma": 10.0 ** numpy.arange(-5,5),
         "random_state": [0, 1, 10, 100],
     }
 
@@ -256,13 +257,13 @@ def grid_search_tasks(std_training_data):
     ]
 
     TRAINING_PARMAS = [
-        (knn_model_gen, KNN_PARAMS),
-#        (svr_model_gen, SVR_PARAMS),
- #      (dtree_model_gen, DTREE_PARAMS),
+#        (knn_model_gen, KNN_PARAMS),
+        (svr_model_gen, SVR_PARAMS),
+#      (dtree_model_gen, DTREE_PARAMS),
     ]
 
-    FOLDS = 8
-    CORE_NUM = 2
+    FOLDS = 10
+    CORE_NUM = 14
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
