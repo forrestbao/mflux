@@ -146,7 +146,8 @@ def train_model(training_data):
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
-        model = knn_model_gen().model
+        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
+        model = model_gen().model
         model.fit(vectors, label) # train the model
         models[i] = model
         return models
@@ -211,14 +212,14 @@ def grid_search_tasks(std_training_data):
     FOLDS: int, number of folds for cross validate
 
     """
-	import numpy
+    import numpy
     knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
     svr_model_gen = RegressionModelFactory("SVR", kernel="rbf", C=10)
     dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
 
     KNN_PARAMS = {
         "n_neighbors": [1, 2, 3, 4, 5, 10],
-        "weights": ["uniform", "distance"],
+        "weights": ["uniform"],
         "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
     }
 
@@ -246,7 +247,7 @@ def grid_search_tasks(std_training_data):
         "random_state": [0, 1, 10, 100],
     }
 
-    SCORINGS = ["mean_squared_error", 
+    SCORINGS = ["mean_squared_error",
 #                "mean_absolute_error"
     ]
 
