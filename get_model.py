@@ -63,12 +63,15 @@ def read_spreadsheet(filename):
     for i in range(1, 29+1):# prepare the data structure
         training_data[i] = ([],[]) # the 1st list is the features and the 2nd the labels for i-th influx
 
+    reports = defaultdict(list)
     with open(filename, 'r') as f:
-        for line in f.readlines():
+        for i, line in enumerate(f.readlines(), 1):
             line = line.strip()
             line = line.split("\t")
             vector = line[2:26+1] # training vector, from Purpose (C) to Other carbon (AA).
                               # one empty column
+            key = ", ".join(vector)
+            reports[key].append(i)
 
             if "" in vector:
                 vector.remove("")
@@ -97,6 +100,10 @@ def read_spreadsheet(filename):
                 training_data[i][0].append(vector) # add a row to feature vectors
                 training_data[i][1].append(float(label)) # add one label
 
+    print("duplicate lines")
+    for k, v in reports.iteritems():
+        if len(v) > 1:
+            print("line number: {}".format(v))
     return training_data
 
 
