@@ -1,5 +1,6 @@
 # extract the training data from spreadsheet
 
+from collections import defaultdict
 import cPickle
 
 import numpy
@@ -219,7 +220,7 @@ def grid_search_tasks(std_training_data):
 
     KNN_PARAMS = {
         "n_neighbors": [1, 2, 3, 4, 5, 10],
-        "weights": ["uniform"],
+        "weights": ["distance"],
         "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
     }
 
@@ -258,15 +259,30 @@ def grid_search_tasks(std_training_data):
     ]
 
     TRAINING_PARMAS = [
-#        (knn_model_gen, KNN_PARAMS),
-        (svr_model_gen, SVR_PARAMS),
+        (knn_model_gen, KNN_PARAMS),
+#        (svr_model_gen, SVR_PARAMS),
 #      (dtree_model_gen, DTREE_PARAMS),
     ]
 
     FOLDS = 10
-    CORE_NUM = 14
+    CORE_NUM = 1
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
+
+
+def _validate_training_data(training_data):
+    reports = []
+    for _, d in training_data.iteritems():
+        report = defaultdict(list)
+        vectors = d[0]
+        for i, v in enumerate(vectors):
+            key = ", ".join(map(str, v))
+            report[key].append(i)
+        # only keep duplicated rows
+        report_ = {k: v for k, v in report.iteritems() if len(v) > 1}
+        reports.append(report_)
+
+    return reports
 
 
 if __name__ == "__main__":
@@ -274,9 +290,13 @@ if __name__ == "__main__":
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
 
+    reports = _validate_training_data(std_training_data)
+    for i, report in enumerate(reports, 1):
+        print("v = {}, duplicate data index = {}".format(i, report.values()))
+
 #    [cross_validation_model(std_training_data, m) for m in training_models]
 
-    grid_search_tasks(std_training_data)
+    # grid_search_tasks(std_training_data)
 
 #    models = train_model(std_training_data)
 #    cPickle.dump(models, open("models_knn.p", "wb"))
