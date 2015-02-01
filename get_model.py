@@ -1,5 +1,6 @@
 # extract the training data from spreadsheet
 
+from collections import defaultdict
 import cPickle
 
 import numpy
@@ -61,12 +62,15 @@ def read_spreadsheet(filename):
     for i in range(1, 29+1):# prepare the data structure
         training_data[i] = ([],[]) # the 1st list is the features and the 2nd the labels for i-th influx
 
+    reports = defaultdict(list)
     with open(filename, 'r') as f:
-        for line in f.readlines():
+        for i, line in enumerate(f.readlines(), 1):
             line = line.strip()
             line = line.split("\t")
             vector = line[2:26+1] # training vector, from Purpose (C) to Other carbon (AA).
                               # one empty column
+            key = ", ".join(vector)
+            reports[key].append(i)
 
             if "" in vector:
                 vector.remove("")
@@ -95,6 +99,10 @@ def read_spreadsheet(filename):
                 training_data[i][0].append(vector) # add a row to feature vectors
                 training_data[i][1].append(float(label)) # add one label
 
+    print("duplicate lines")
+    for k, v in reports.iteritems():
+        if len(v) > 1:
+            print("line number: {}".format(v))
     return training_data
 
 
@@ -145,8 +153,13 @@ def train_model(training_data):
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
+<<<<<<< HEAD
         svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
         model = svr_model_gen().model
+=======
+        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
+        model = model_gen().model
+>>>>>>> 1d42af4a3fd516098058e7fa1ed7f7c41532dff5
         model.fit(vectors, label) # train the model
         models[i] = model
     return models
@@ -218,7 +231,7 @@ def grid_search_tasks(std_training_data):
 
     KNN_PARAMS = {
         "n_neighbors": [1, 2, 3, 4, 5, 10],
-        "weights": ["uniform", "distance"],
+        "weights": ["distance"],
         "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
     }
 
@@ -246,7 +259,7 @@ def grid_search_tasks(std_training_data):
         "random_state": [0, 1, 10, 100],
     }
 
-    SCORINGS = ["mean_squared_error", 
+    SCORINGS = ["mean_squared_error",
 #                "mean_absolute_error"
     ]
 
@@ -257,13 +270,13 @@ def grid_search_tasks(std_training_data):
     ]
 
     TRAINING_PARMAS = [
-#        (knn_model_gen, KNN_PARAMS),
-        (svr_model_gen, SVR_PARAMS),
+        (knn_model_gen, KNN_PARAMS),
+#        (svr_model_gen, SVR_PARAMS),
 #      (dtree_model_gen, DTREE_PARAMS),
     ]
 
     FOLDS = 10
-    CORE_NUM = 14
+    CORE_NUM = 1
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
@@ -296,15 +309,38 @@ def svr_test(std_training_data):
 #        print Label_predict
 #        break
 
+def _validate_training_data(training_data):
+    reports = []
+    for _, d in training_data.iteritems():
+        report = defaultdict(list)
+        vectors = d[0]
+        for i, v in enumerate(vectors):
+            key = ", ".join(map(str, v))
+            report[key].append(i)
+        # only keep duplicated rows
+        report_ = {k: v for k, v in report.iteritems() if len(v) > 1}
+        reports.append(report_)
+
+    return reports
+
+
 if __name__ == "__main__":
     training_data = read_spreadsheet("wild_type.csv")
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
     svr_test(std_training_data)
 
+    reports = _validate_training_data(std_training_data)
+    for i, report in enumerate(reports, 1):
+        print("v = {}, duplicate data index = {}".format(i, report.values()))
+
 #    [cross_validation_model(std_training_data, m) for m in training_models]
 
+<<<<<<< HEAD
 #    grid_search_tasks(std_training_data)
+=======
+    # grid_search_tasks(std_training_data)
+>>>>>>> 1d42af4a3fd516098058e7fa1ed7f7c41532dff5
 
 #    models = train_model(std_training_data)
 #    cPickle.dump(models, open("models_knn.p", "wb"))
