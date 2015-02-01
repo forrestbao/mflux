@@ -40,12 +40,11 @@ def read_spreadsheet(filename):
     Returns
     ========
 
-	training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
+    training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
                    values are 2-tuples (Feature, Label), where
                    Feature is a 2-D list, each sublist is 24-D feature vector for one sample
                    and
                    Label is a 1-D list, labels for all samples.
-
 
     Notes
     ============
@@ -146,10 +145,11 @@ def train_model(training_data):
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
-        model = knn_model_gen().model
+        svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
+        model = svr_model_gen().model
         model.fit(vectors, label) # train the model
         models[i] = model
-        return models
+    return models
 
 
 def cross_validation_model(training_data, model_gen):
@@ -211,9 +211,9 @@ def grid_search_tasks(std_training_data):
     FOLDS: int, number of folds for cross validate
 
     """
-	import numpy
+    import numpy
     knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
-    svr_model_gen = RegressionModelFactory("SVR", kernel="rbf", C=10)
+    svr_model_gen = RegressionModelFactory("SVR", kernel="rbf", C=10, epsilon=0.2)
     dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
 
     KNN_PARAMS = {
@@ -267,15 +267,44 @@ def grid_search_tasks(std_training_data):
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
+def svr_test(std_training_data):
+    """Test SVR training accuracy
+
+    Parameters
+    =============
+        std_training_data: dict, keys are vID, values are tuples (vector, label) 
+                            each vector is 2-D array and label is a 1-D array
+
+    """
+
+
+    from numpy import square, mean, sqrt
+    Models = train_model(std_training_data)
+    print len(Models)
+    Influxes = {}
+
+    for vID, Model in Models.iteritems():
+        (Vectors_for_this_v, Label_for_this_v) = std_training_data[vID]
+        Label_predict = Model.predict(Vectors_for_this_v)
+        MSE = Label_predict - Label_for_this_v
+        MSE = sqrt(mean(square(MSE)))
+    
+        print vID, MSE
+#        for i, j in enumerate(list(MSE)):
+#            print i+1, j 
+#        print list(square(MSE))
+#        print Label_predict
+#        break
 
 if __name__ == "__main__":
-    training_data = read_spreadsheet("1111_forrest.csv")
+    training_data = read_spreadsheet("wild_type.csv")
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
+    svr_test(std_training_data)
 
 #    [cross_validation_model(std_training_data, m) for m in training_models]
 
-    grid_search_tasks(std_training_data)
+#    grid_search_tasks(std_training_data)
 
 #    models = train_model(std_training_data)
 #    cPickle.dump(models, open("models_knn.p", "wb"))
