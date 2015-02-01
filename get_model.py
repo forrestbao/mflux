@@ -153,13 +153,9 @@ def train_model(training_data):
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
-<<<<<<< HEAD
-        svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
-        model = svr_model_gen().model
-=======
-        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
+        model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
+#        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
         model = model_gen().model
->>>>>>> 1d42af4a3fd516098058e7fa1ed7f7c41532dff5
         model.fit(vectors, label) # train the model
         models[i] = model
     return models
@@ -330,17 +326,11 @@ if __name__ == "__main__":
     std_training_data, scalers = standardize_features(encoded_training_data)
     svr_test(std_training_data)
 
-    reports = _validate_training_data(std_training_data)
-    for i, report in enumerate(reports, 1):
-        print("v = {}, duplicate data index = {}".format(i, report.values()))
+#    reports = _validate_training_data(std_training_data)
+#    for i, report in enumerate(reports, 1):
+#        print("v = {}, duplicate data index = {}".format(i, report.values()))
 
 #    [cross_validation_model(std_training_data, m) for m in training_models]
-
-<<<<<<< HEAD
-#    grid_search_tasks(std_training_data)
-=======
-    # grid_search_tasks(std_training_data)
->>>>>>> 1d42af4a3fd516098058e7fa1ed7f7c41532dff5
 
 #    models = train_model(std_training_data)
 #    cPickle.dump(models, open("models_knn.p", "wb"))
