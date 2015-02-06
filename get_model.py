@@ -99,7 +99,7 @@ def read_spreadsheet(filename):
                 training_data[i][0].append(vector) # add a row to feature vectors
                 training_data[i][1].append(float(label)) # add one label
 
-    print("duplicate lines")
+    print("checking duplicate lines")
     for k, v in reports.iteritems():
         if len(v) > 1:
             print("line number: {}".format(v))
@@ -161,21 +161,36 @@ def train_model(training_data):
     return models
 
 
-def cross_validation_model(training_data, model_gen):
+def cross_validation_model(training_data, model_gen, Folds, N_jobs):
     """Do a cross validation on a model using the given training data.
 
     :param training_data: A dict with keys as v, and values as [vectors, label].
     :param model_gen: A RegressionModel generator.
+    :param Folds: number of CV folds
+    
 
     """
+
+
+    import sklearn
     print("model: {}".format(model_gen))
     print("v\tscore_accuracy")
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         label = numpy.asarray(label)
         model = model_gen()
+
+        # allow shuffleSplit on dataset
+#        print len(label)
+        if Folds < 1:
+            Folds = sklearn.cross_validation.ShuffleSplit(len(label))
+
         scores = cross_validation.cross_val_score(model.model, vectors, label,
-                                                  cv=4)
+                                                  cv=Folds, 
+                                                  scoring="mean_squared_error",
+                                                  n_jobs = N_jobs
+#                                                  scoring="r2"
+                                                  )
         print("{}\t{} (+/- {})"
               .format(i, scores.mean(), scores.std() * 2))
 
@@ -221,10 +236,6 @@ def grid_search_tasks(std_training_data):
 
     """
     import numpy
-    knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
-    svr_model_gen = RegressionModelFactory("SVR", kernel="rbf", C=10, epsilon=0.2)
-    dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
-
     KNN_PARAMS = {
         "n_neighbors": [1, 2, 3, 4, 5, 10],
         "weights": ["distance"],
@@ -232,7 +243,7 @@ def grid_search_tasks(std_training_data):
     }
 
     SVR_PARAMS = {
-        "C": 10.0 ** numpy.arange(-3,5),
+        "C": 10.0 ** numpy.arange(-2,2),
         "epsilon": [0.1, 0.2, 0.3, 0.4, 0.5, 1.0],
         "kernel": [
         "linear",
@@ -259,11 +270,6 @@ def grid_search_tasks(std_training_data):
 #                "mean_absolute_error"
     ]
 
-    training_models = [
-        knn_model_gen,
-        svr_model_gen,
-        dtree_model_gen,
-    ]
 
     TRAINING_PARMAS = [
         (knn_model_gen, KNN_PARAMS),
@@ -276,7 +282,28 @@ def grid_search_tasks(std_training_data):
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
-def svr_test(std_training_data):
+def cv_tasks(std_training_data, Folds, N_jobs):
+    """Cross-validation on all v's
+
+    :param Folds: number of CV folds
+    :param N_jobs: number of CPU cores
+
+    """
+    import sklearn
+    knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
+    svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
+    dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
+
+    training_models = [
+#        knn_model_gen,
+        svr_model_gen,
+#        dtree_model_gen,
+    ]
+ 
+ 
+    [cross_validation_model(std_training_data, m, Folds, N_jobs) for m in training_models]
+
+def svr_training_test(std_training_data):
     """Test SVR training accuracy
 
     Parameters
@@ -319,18 +346,38 @@ def _validate_training_data(training_data):
 
     return reports
 
+def label_std(Training_data):
+    """standardize the labels in training data
+     training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
+                   values are 2-tuples (Feature, Label), where
+                   Feature is a 2-D list, each sublist is 24-D feature vector for one sample
+                   and
+                   Label is a 1-D list, labels for all samples.
+
+    """
+    import sklearn
+    Label_scaled_data = {}
+    for vID, (Vector, Label) in Training_data.iteritems():
+#        Label_scaled = sklearn.preprocessing.scale(Label)  # option 1 of standarization 
+        Label_scaled = sklearn.preprocessing.MinMaxScaler().fit_transform(Label)  # OPtion 2, MinMax scalar
+
+        Label_scaled_data[vID] = (Vector, Label_scaled)
+
+    return Label_scaled_data
 
 if __name__ == "__main__":
     training_data = read_spreadsheet("wild_type.csv")
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
-    svr_test(std_training_data)
+
+    std_training_data = label_std(std_training_data) 
+
+    cv_tasks(std_training_data, 10, 2)
 
 #    reports = _validate_training_data(std_training_data)
 #    for i, report in enumerate(reports, 1):
 #        print("v = {}, duplicate data index = {}".format(i, report.values()))
 
-#    [cross_validation_model(std_training_data, m) for m in training_models]
 
 #    models = train_model(std_training_data)
 #    cPickle.dump(models, open("models_knn.p", "wb"))
