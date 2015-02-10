@@ -244,17 +244,17 @@ def grid_search_tasks(std_training_data):
 
     SVR_PARAMS = {
         "C": 10.0 ** numpy.arange(-2,2),
-        "epsilon": [0.1, 0.2, 0.3, 0.4, 0.5, 1.0],
+        "epsilon": [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 1.0],
         "kernel": [
         "linear",
         "rbf",
-        "poly",
-        "sigmoid",
+#        "poly",
+#        "sigmoid",
         # "precomputed"
         ],
-        "degree": [3, 5, 10],
-        "gamma": 10.0 ** numpy.arange(-5,5),
-        "random_state": [0, 1, 10, 100],
+#        "degree": [3, 5, 10],
+        "gamma": 10.0 ** numpy.arange(-3,3),
+#        "random_state": [0, 1, 10, 100],
     }
 
     DTREE_PARAMS = {
@@ -278,7 +278,7 @@ def grid_search_tasks(std_training_data):
     ]
 
     FOLDS = 10
-    CORE_NUM = 1
+    CORE_NUM = 16
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
@@ -370,9 +370,9 @@ if __name__ == "__main__":
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
 
-    std_training_data = label_std(std_training_data) 
-
-    cv_tasks(std_training_data, 10, 2)
+    std_training_data = label_std(std_training_data)  # standarize the labels/targets as well.
+    grid_search_tasks(std_training_data)
+#    cv_tasks(std_training_data, 10, 16)
 
 #    reports = _validate_training_data(std_training_data)
 #    for i, report in enumerate(reports, 1):
@@ -384,3 +384,4 @@ if __name__ == "__main__":
 #    cPickle.dump(scalers, open("scalers.p", "wb"))
 #    cPickle.dump(encoders, open("encoders.p", "wb"))
 #    cPickle.dump(training_data, open("training_data.p", "wb"))
+
