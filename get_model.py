@@ -236,6 +236,10 @@ def grid_search_tasks(std_training_data):
 
     """
     import numpy
+    knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
+    svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
+    dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
+
     KNN_PARAMS = {
         "n_neighbors": [1, 2, 3, 4, 5, 10],
         "weights": ["distance"],
@@ -272,8 +276,8 @@ def grid_search_tasks(std_training_data):
 
 
     TRAINING_PARMAS = [
-        (knn_model_gen, KNN_PARAMS),
-#        (svr_model_gen, SVR_PARAMS),
+#        (knn_model_gen, KNN_PARAMS),
+        (svr_model_gen, SVR_PARAMS),
 #      (dtree_model_gen, DTREE_PARAMS),
     ]
 
