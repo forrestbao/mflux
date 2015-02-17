@@ -241,33 +241,33 @@ def grid_search_tasks(std_training_data):
     dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
 
     KNN_PARAMS = {
-        "n_neighbors": [1, 2, 3, 4, 5, 10],
-        "weights": ["distance"],
-        "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
+        "n_neighbors": range(1, 16),
+        "weights": ["distance", "uniform"],
+        "algorithm": ["ball_tree", "kd_tree", "brute"],
+        "metric": ["euclidean", "chebyshev", "minkowski", ]
     }
 
     SVR_PARAMS = {
-        "C": 10.0 ** numpy.arange(-2,2),
-        "epsilon": [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 1.0],
+        "C": 10.0 ** numpy.arange(-4,4),
+        "epsilon": [0., 0.0001, 0.001, 0.01],  # experience: epsilon>=0.1 is not good. 
         "kernel": [
-        "linear",
+       "linear",
         "rbf",
-#        "poly",
+#        "poly",  # polynomial kernel sucks. Never use it. 
 #        "sigmoid",
         # "precomputed"
         ],
-#        "degree": [3, 5, 10],
-        "gamma": 10.0 ** numpy.arange(-3,3),
-#        "random_state": [0, 1, 10, 100],
-    }
+#        "degree": [5,], # because polynomial kernel sucks. Never use it. 
+        "gamma": 10.0 ** numpy.arange(-4, 4),
+  }
 
     DTREE_PARAMS = {
-        "criterion": ["mse"],
-        "splitter": ["best"],
-        "min_samples_split": [2, 3, 5, 10],
-        "min_samples_leaf": [1, 2, 5],
-        "max_features": ["auto", "sqrt", "log2"],
-        "random_state": [0, 1, 10, 100],
+#        "criterion": ["mse"],
+        "splitter": ["best", "random"],
+        "min_samples_split": range(2, 16),
+        "min_samples_leaf": range(1, 16),
+        "max_features": ["sqrt", "log2"],
+#        "random_state": [0, 1, 10, 100],
     }
 
     SCORINGS = ["mean_squared_error",
@@ -277,8 +277,8 @@ def grid_search_tasks(std_training_data):
 
     TRAINING_PARMAS = [
 #        (knn_model_gen, KNN_PARAMS),
-        (svr_model_gen, SVR_PARAMS),
-#      (dtree_model_gen, DTREE_PARAMS),
+#        (svr_model_gen, SVR_PARAMS),
+      (dtree_model_gen, DTREE_PARAMS),
     ]
 
     FOLDS = 10
