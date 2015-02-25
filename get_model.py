@@ -167,7 +167,7 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
     :param training_data: A dict with keys as v, and values as [vectors, label].
     :param model_gen: A RegressionModel generator.
     :param Folds: number of CV folds
-    
+
 
     """
 
@@ -175,6 +175,7 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
     import sklearn
     print("model: {}".format(model_gen))
     print("v\tscore_accuracy")
+    folds = Folds
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         label = numpy.asarray(label)
@@ -183,10 +184,10 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
         # allow shuffleSplit on dataset
 #        print len(label)
         if Folds < 1:
-            Folds = sklearn.cross_validation.ShuffleSplit(len(label))
+            folds = sklearn.cross_validation.ShuffleSplit(len(label))
 
         scores = cross_validation.cross_val_score(model.model, vectors, label,
-                                                  cv=Folds, 
+                                                  cv=folds,
                                                   scoring="mean_squared_error",
                                                   n_jobs = N_jobs
 #                                                  scoring="r2"
@@ -303,8 +304,8 @@ def cv_tasks(std_training_data, Folds, N_jobs):
         svr_model_gen,
 #        dtree_model_gen,
     ]
- 
- 
+
+
     [cross_validation_model(std_training_data, m, Folds, N_jobs) for m in training_models]
 
 def svr_training_test(std_training_data):
@@ -312,7 +313,7 @@ def svr_training_test(std_training_data):
 
     Parameters
     =============
-        std_training_data: dict, keys are vID, values are tuples (vector, label) 
+        std_training_data: dict, keys are vID, values are tuples (vector, label)
                             each vector is 2-D array and label is a 1-D array
 
     """
@@ -328,10 +329,10 @@ def svr_training_test(std_training_data):
         Label_predict = Model.predict(Vectors_for_this_v)
         MSE = Label_predict - Label_for_this_v
         MSE = sqrt(mean(square(MSE)))
-    
+
         print vID, MSE
 #        for i, j in enumerate(list(MSE)):
-#            print i+1, j 
+#            print i+1, j
 #        print list(square(MSE))
 #        print Label_predict
 #        break
@@ -362,7 +363,7 @@ def label_std(Training_data):
     import sklearn
     Label_scaled_data = {}
     for vID, (Vector, Label) in Training_data.iteritems():
-#        Label_scaled = sklearn.preprocessing.scale(Label)  # option 1 of standarization 
+#        Label_scaled = sklearn.preprocessing.scale(Label)  # option 1 of standarization
         Label_scaled = sklearn.preprocessing.MinMaxScaler().fit_transform(Label)  # OPtion 2, MinMax scalar
 
         Label_scaled_data[vID] = (Vector, Label_scaled)
@@ -388,4 +389,3 @@ if __name__ == "__main__":
 #    cPickle.dump(scalers, open("scalers.p", "wb"))
 #    cPickle.dump(encoders, open("encoders.p", "wb"))
 #    cPickle.dump(training_data, open("training_data.p", "wb"))
-
