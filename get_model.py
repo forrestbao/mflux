@@ -35,6 +35,35 @@ class RegressionModelFactory(object):
         """Create a new RegressionModel instance each time."""
         return RegressionModel(self.name, **self.kwargs)
 
+def shuffle_data(Training_data):
+    """Shuffle the order of data in training data
+
+    Shuffle by scrambling the index
+
+    (New)_training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
+                   values are 2-tuples (Feature, Label), where
+                   Feature is a 2-D list, each sublist is 24-D feature vector for one sample
+                   and
+                   Label is a 1-D list, labels for all samples.
+
+
+    """
+    import random
+    New_training_data = {}
+    for i, (Feature_vector, Labels) in Training_data.iteritems():
+        Num_Samples = len(Feature_vector)
+        if Num_Samples != len(Labels):
+            print "Error! Inconsistent numbers of Features Vectors and Labels"
+        Shuffled_index = range(Num_Samples)
+        random.shuffle(Shuffled_index)
+        New_Feature_vector = [Feature_vector[j] for j in Shuffled_index]
+        New_Label = [Labels[j] for j in Shuffled_index]
+        
+        New_training_data[i] = ([New_Feature_vector, New_Label])
+
+    return New_training_data
+
+
 def read_spreadsheet(filename):
     """Turn spreadsheet into matrixes for training
 
@@ -98,6 +127,8 @@ def read_spreadsheet(filename):
 
                 training_data[i][0].append(vector) # add a row to feature vectors
                 training_data[i][1].append(float(label)) # add one label
+
+    
 
     print("checking duplicate lines")
     for k, v in reports.iteritems():
@@ -253,13 +284,13 @@ def grid_search_tasks(std_training_data):
         "epsilon": [0., 0.0001, 0.001, 0.01],  # experience: epsilon>=0.1 is not good. 
         "kernel": [
        "linear",
-        "rbf",
+#        "rbf",
 #        "poly",  # polynomial kernel sucks. Never use it. 
 #        "sigmoid",
         # "precomputed"
         ],
 #        "degree": [5,], # because polynomial kernel sucks. Never use it. 
-        "gamma": 10.0 ** numpy.arange(-4, 4),
+#        "gamma": 10.0 ** numpy.arange(-4, 4),
   }
 
     DTREE_PARAMS = {
@@ -278,12 +309,12 @@ def grid_search_tasks(std_training_data):
 
     TRAINING_PARMAS = [
 #        (knn_model_gen, KNN_PARAMS),
-#        (svr_model_gen, SVR_PARAMS),
-      (dtree_model_gen, DTREE_PARAMS),
+        (svr_model_gen, SVR_PARAMS),
+#      (dtree_model_gen, DTREE_PARAMS),
     ]
 
     FOLDS = 10
-    CORE_NUM = 16
+    CORE_NUM = 10
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
@@ -372,6 +403,7 @@ def label_std(Training_data):
 
 if __name__ == "__main__":
     training_data = read_spreadsheet("wild_type.csv")
+    training_data = shuffle_data(training_data)
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
 
