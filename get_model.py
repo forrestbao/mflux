@@ -453,4 +453,4 @@ if __name__ == "__main__":
     cPickle.dump(models, open("models_svm.p", "wb"))
     cPickle.dump(scalers, open("scalers.p", "wb"))
     cPickle.dump(encoders, open("encoders.p", "wb"))
-    cPickle.dump(training_data, open("training_data.p", "wb"))
+#    cPickle.dump(training_data, open("training_data.p", "wb"))
