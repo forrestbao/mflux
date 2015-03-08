@@ -396,16 +396,25 @@ def label_std(Training_data):
                    and
                    Label is a 1-D list, labels for all samples.
 
+    Label_scalers: dict, keys are vIDs and values are sklearn.preprocessing.MinMaxScaler instances for 29 influxes  
+
+    sklearn's preprocessing MixMaxScaler does column-wise Minmax scaling.
+    Since influxes have different number of intances, we must loop thru the 29. 
+
     """
     import sklearn
     Label_scaled_data = {}
+    Label_scalers = {}
     for vID, (Vector, Label) in Training_data.iteritems():
 #        Label_scaled = sklearn.preprocessing.scale(Label)  # option 1 of standarization
-        Label_scaled = sklearn.preprocessing.MinMaxScaler().fit_transform(Label)  # OPtion 2, MinMax scalar
+        Label_scaler = sklearn.preprocessing.MinMaxScaler().fit(Label)
+        Label_scaled = Label_scaler.transform(Label) # Option 2, MinMax scaler
+#        Label_scaled = sklearn.preprocessing.MinMaxScaler().fit_transform(Label)  # OPtion 2, MinMax scalar
 
         Label_scaled_data[vID] = (Vector, Label_scaled)
+        Label_scalers[vID] = Label_scaler
 
-    return Label_scaled_data
+    return Label_scaled_data, Label_scalers
 
 def load_parameters(File):
     """Load a parameter file from grid search print out
@@ -438,9 +447,9 @@ if __name__ == "__main__":
     training_data = read_spreadsheet("wild_and_mutant.csv")
     training_data = shuffle_data(training_data)
     encoded_training_data, encoders = one_hot_encode_features(training_data)
-    std_training_data, scalers = standardize_features(encoded_training_data)
+    std_training_data, Feature_scalers = standardize_features(encoded_training_data)
 
-    std_training_data = label_std(std_training_data)  # standarize the labels/targets as well.
+    std_training_data, Label_scalers = label_std(std_training_data)  # standarize the labels/targets as well.
 #    grid_search_tasks(std_training_data)
 #    cv_tasks(std_training_data, 10, 16)
 
@@ -451,6 +460,7 @@ if __name__ == "__main__":
     Parameters = load_parameters("svr_both_rbf_shuffle.log")
     models = train_model(std_training_data, Parameters)
     cPickle.dump(models, open("models_svm.p", "wb"))
-    cPickle.dump(scalers, open("scalers.p", "wb"))
+    cPickle.dump(Feature_scalers, open("feature_scalers.p", "wb"))
     cPickle.dump(encoders, open("encoders.p", "wb"))
+    cPickle.dump(Label_scalers, open("label_scalers.p", "wb"))
 #    cPickle.dump(training_data, open("training_data.p", "wb"))
