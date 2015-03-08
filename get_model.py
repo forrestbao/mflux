@@ -96,7 +96,7 @@ def read_spreadsheet(filename):
         for i, line in enumerate(f.readlines(), 1):
             line = line.strip()
             line = line.split("\t")
-            vector = line[2:26+1] # training vector, from Purpose (C) to Other carbon (AA).
+            vector = line[2:26+1] # training vector, from Species (C) to Other carbon (AA).
                               # one empty column
             key = ", ".join(vector)
             reports[key].append(i)
@@ -128,8 +128,6 @@ def read_spreadsheet(filename):
                 training_data[i][0].append(vector) # add a row to feature vectors
                 training_data[i][1].append(float(label)) # add one label
 
-    
-
     print("checking duplicate lines")
     for k, v in reports.iteritems():
         if len(v) > 1:
@@ -144,6 +142,7 @@ def one_hot_encode_features(training_data):
     Species, reactor, nutrient, oxygen, engineering method, MFA and extra energy
 
     """
+    import numpy
     encoded_training_data, encoders = {}, {}
     for vid, (vectors, targets) in training_data.iteritems():
             encoder = preprocessing.OneHotEncoder()
@@ -154,7 +153,6 @@ def one_hot_encode_features(training_data):
             encoded_training_data[vid] = (encoded_vectors, targets)
             encoders[vid] = encoder
     return encoded_training_data, encoders
-
 
 def standardize_features(training_data):
     """Standarize feature vectors for each influx
@@ -173,18 +171,26 @@ def standardize_features(training_data):
     return std_training_data, scalers
 
 
-def train_model(training_data):
+def train_model(training_data, Parameters):
     """Train a regression model for each of the 29 influxes
 
     Returns
     ================
     Models: dict, keys are influx indexes and values are regression models
+    Parameters: dict, keys are intergers 1 to 29, values are dicts, such as
+                'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'
 
     """
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
-        model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
+        Parameter = Parameters[i]
+        model_gen = RegressionModelFactory("SVR", 
+                                           kernel="rbf", 
+                                           C=Parameter['C'], 
+                                           epsilon=Parameter['epsilon'],
+                                           gamma=Parameter['gamma']) 
+#        model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
 #        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
         model = model_gen().model
         model.fit(vectors, label) # train the model
@@ -281,16 +287,16 @@ def grid_search_tasks(std_training_data):
 
     SVR_PARAMS = {
         "C": 10.0 ** numpy.arange(-4,4),
-        "epsilon": [0., 0.0001, 0.001, 0.01],  # experience: epsilon>=0.1 is not good. 
+        "epsilon": [0., 0.0001, 0.001, 0.01, 0.1],  # experience: epsilon>=0.1 is not good. 
         "kernel": [
-       "linear",
-#        "rbf",
+#       "linear",
+        "rbf",
 #        "poly",  # polynomial kernel sucks. Never use it. 
 #        "sigmoid",
         # "precomputed"
         ],
 #        "degree": [5,], # because polynomial kernel sucks. Never use it. 
-#        "gamma": 10.0 ** numpy.arange(-4, 4),
+        "gamma": 10.0 ** numpy.arange(-4, 4),
   }
 
     DTREE_PARAMS = {
@@ -314,7 +320,7 @@ def grid_search_tasks(std_training_data):
     ]
 
     FOLDS = 10
-    CORE_NUM = 10
+    CORE_NUM = 16
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
@@ -401,23 +407,50 @@ def label_std(Training_data):
 
     return Label_scaled_data
 
+def load_parameters(File):
+    """Load a parameter file from grid search print out
+ 
+    The format of grid search print out:
+	checking duplicate lines
+	model: SVR ({'epsilon': 0.2, 'C': 10, 'kernel': 'linear'})
+	v	scoring	best_score	best_params
+	1	mean_squared_error	-0.00462588529703	{'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+	2	mean_squared_error	-0.0103708930608	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+	3	mean_squared_error	-0.00713773093885	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+	4	mean_squared_error	-0.0115793576617	{'epsilon': 0.001, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+
+    """
+    import re
+    Parameters = {}
+    with open(File, 'r') as F:
+        F.readline() # Skip first line
+        F.readline() # Skip second line
+        F.readline() # Skip 3rd line
+        for Line in F.readlines():
+            [v, _, _, Parameter] = Line.split("\t")
+            v = int(v)
+            exec "Parameter = " + Parameter
+            Parameters[v] = Parameter
+
+    return Parameters
+
 if __name__ == "__main__":
-    training_data = read_spreadsheet("wild_type.csv")
+    training_data = read_spreadsheet("wild_and_mutant.csv")
     training_data = shuffle_data(training_data)
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, scalers = standardize_features(encoded_training_data)
 
     std_training_data = label_std(std_training_data)  # standarize the labels/targets as well.
-    grid_search_tasks(std_training_data)
+#    grid_search_tasks(std_training_data)
 #    cv_tasks(std_training_data, 10, 16)
 
 #    reports = _validate_training_data(std_training_data)
 #    for i, report in enumerate(reports, 1):
 #        print("v = {}, duplicate data index = {}".format(i, report.values()))
 
-
-#    models = train_model(std_training_data)
-#    cPickle.dump(models, open("models_knn.p", "wb"))
-#    cPickle.dump(scalers, open("scalers.p", "wb"))
-#    cPickle.dump(encoders, open("encoders.p", "wb"))
-#    cPickle.dump(training_data, open("training_data.p", "wb"))
+    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+    models = train_model(std_training_data, Parameters)
+    cPickle.dump(models, open("models_svm.p", "wb"))
+    cPickle.dump(scalers, open("scalers.p", "wb"))
+    cPickle.dump(encoders, open("encoders.p", "wb"))
+    cPickle.dump(training_data, open("training_data.p", "wb"))
