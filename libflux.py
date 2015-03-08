@@ -79,12 +79,15 @@ def predict(Vector, Substrates):
     import cPickle
     import time
     import collections
+    import sys
+    sys.stderr = sys.stdout
 
     Models = cPickle.load(open("models_svm.p", "r"))
-    Scalers = cPickle.load(open("scalers.p", "r"))
+    Feature_scalers = cPickle.load(open("feature_scalers.p", "r"))
     Encoders = cPickle.load(open("encoders.p", "r"))
+    Label_scalers = cPickle.load(open("label_scalers.p", "r"))
 
-    print "Models, Scalers and one-hot Encoder loaded..." 
+    print "Models, feature and label Scalers and one-hot Encoder loaded..\n" 
     #  Models: dict, keys are influx indexes and values are regression models
 
     T = time.clock()
@@ -94,8 +97,10 @@ def predict(Vector, Substrates):
     for vID, Model in Models.iteritems():
         Vector_local = list(Vector) # make a copy; o/w Vector will be changed in one-hot encoding and standarization for different models
         Vector_local[:6+1] = Encoders[vID].transform([Vector[:6+1]]).toarray().tolist()[0] # one-hot encoding for categorical features
-        Vector_local = Scalers[vID].transform(Vector_local) # standarization
-        Influxes[vID] = Model.predict(Vector_local)[0]
+        Vector_local = Feature_scalers[vID].transform(Vector_local) # standarization of features
+        Influx_local = Model.predict(Vector_local)[0] # prediction
+        Influx_local = Label_scalers[vID].inverse_transform([Influx_local])[0]
+        Influxes[vID] = Influx_local
     
     Influxes = adjust_influxes(Influxes, Substrates)
     print_influxes(Influxes)
