@@ -362,7 +362,7 @@ def svr_training_test(std_training_data):
 
 
     from numpy import square, mean, sqrt
-    Models = train_model(std_training_data)
+    Models = train_model(std_training_data, None)
     print len(Models)
     Influxes = {}
 
