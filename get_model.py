@@ -164,7 +164,7 @@ def standardize_features(training_data):
     std_training_data, scalers = {}, {}
     for vid, (vectors, labels) in training_data.iteritems():
         vectors_scaled = preprocessing.scale(vectors)
-        std_training_data[vid] = ( vectors, labels)
+        std_training_data[vid] = (vectors_scaled, labels)
 
         scalers[vid] = preprocessing.StandardScaler().fit(vectors)
 
@@ -186,10 +186,10 @@ def train_model(training_data, Parameters):
         vectors, label = training_data[i]
         Parameter = Parameters[i]
         model_gen = RegressionModelFactory("SVR", 
-                                           kernel="rbf", 
+                                           kernel=Parameter['kernel'], 
                                            C=Parameter['C'], 
                                            epsilon=Parameter['epsilon'],
-                                           gamma=Parameter['gamma']) 
+                                           gamma=Parameter.get('gamma', 0.01)) 
 #        model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
 #        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
         model = model_gen().model
@@ -445,7 +445,7 @@ def load_parameters(File):
 
 if __name__ == "__main__":
     training_data = read_spreadsheet("wild_and_mutant.csv")
-    training_data = shuffle_data(training_data)
+#    training_data = shuffle_data(training_data)
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, Feature_scalers = standardize_features(encoded_training_data)
 
@@ -457,10 +457,14 @@ if __name__ == "__main__":
 #    for i, report in enumerate(reports, 1):
 #        print("v = {}, duplicate data index = {}".format(i, report.values()))
 
-    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+    Parameters = load_parameters("svr_both_linear_shuffle.log")
     models = train_model(std_training_data, Parameters)
     cPickle.dump(models, open("models_svm.p", "wb"))
     cPickle.dump(Feature_scalers, open("feature_scalers.p", "wb"))
     cPickle.dump(encoders, open("encoders.p", "wb"))
     cPickle.dump(Label_scalers, open("label_scalers.p", "wb"))
-#    cPickle.dump(training_data, open("training_data.p", "wb"))
+
+    cPickle.dump(training_data, open("training_data.p", "wb"))
+    cPickle.dump(encoded_training_data, open("encoded_training_data.p", "wb"))
+    cPickle.dump(std_training_data,  open("std_training_data.p", "wb"))
+
