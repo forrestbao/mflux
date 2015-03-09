@@ -87,7 +87,7 @@ def predict(Vector, Substrates):
     Encoders = cPickle.load(open("encoders.p", "r"))
     Label_scalers = cPickle.load(open("label_scalers.p", "r"))
 
-    print "Models, feature and label Scalers and one-hot Encoder loaded..\n" 
+    print "Models, feature and label Scalers and one-hot Encoder loaded.." 
     #  Models: dict, keys are influx indexes and values are regression models
 
     T = time.clock()
@@ -96,9 +96,14 @@ def predict(Vector, Substrates):
 
     for vID, Model in Models.iteritems():
         Vector_local = list(Vector) # make a copy; o/w Vector will be changed in one-hot encoding and standarization for different models
-        Vector_local[:6+1] = Encoders[vID].transform([Vector[:6+1]]).toarray().tolist()[0] # one-hot encoding for categorical features
+        One_hot_encoding_of_categorical_features =  Encoders[vID].transform([Vector[:6+1]]).toarray().tolist()[0]  # one-hot encoding for categorical features
+#        print len(One_hot_encoding_of_categorical_features), "\n"
+        Vector_local =  One_hot_encoding_of_categorical_features + Vector_local[6+1:] # combine one-hot-encoded categorical features with continuous features (including substrate matrix)
+#        print Vector_local, len(Vector_local)
         Vector_local = Feature_scalers[vID].transform(Vector_local) # standarization of features
+#        print Vector_local 
         Influx_local = Model.predict(Vector_local)[0] # prediction
+        print "v{0:d}={1:.5f}, ".format(vID, Influx_local)
         Influx_local = Label_scalers[vID].inverse_transform([Influx_local])[0]
         Influxes[vID] = Influx_local
     
