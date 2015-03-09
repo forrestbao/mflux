@@ -370,6 +370,10 @@ def svr_training_test(std_training_data):
         (Vectors_for_this_v, Label_for_this_v) = std_training_data[vID]
         Label_predict = Model.predict(Vectors_for_this_v)
         MSE = Label_predict - Label_for_this_v
+        if vID==2:
+            print Label_predict
+            print Label_for_this_v
+            print MSE
         MSE = sqrt(mean(square(MSE)))
 
         print vID, MSE
