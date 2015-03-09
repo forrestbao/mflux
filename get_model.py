@@ -180,17 +180,22 @@ def train_model(training_data, Parameters):
     Parameters: dict, keys are intergers 1 to 29, values are dicts, such as
                 'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'
 
+    
+    Notes
+    ===========
+    Parameters are not in use. Now use same parameters for all v's. 
+
     """
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
-        Parameter = Parameters[i]
-        model_gen = RegressionModelFactory("SVR", 
-                                           kernel=Parameter['kernel'], 
-                                           C=Parameter['C'], 
-                                           epsilon=Parameter['epsilon'],
-                                           gamma=Parameter.get('gamma', 0.01)) 
-#        model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
+#         Parameter = Parameters[i]
+#        model_gen = RegressionModelFactory("SVR", 
+#                                           kernel=Parameter['kernel'], 
+#                                           C=Parameter['C'], 
+#                                           epsilon=Parameter['epsilon'],
+#                                           gamma=Parameter.get('gamma', 0.01)) 
+        model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
 #        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
         model = model_gen().model
         model.fit(vectors, label) # train the model
@@ -333,7 +338,7 @@ def cv_tasks(std_training_data, Folds, N_jobs):
     """
     import sklearn
     knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
-    svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
+    svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
     dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
 
     training_models = [
@@ -452,6 +457,8 @@ if __name__ == "__main__":
     std_training_data, Label_scalers = label_std(std_training_data)  # standarize the labels/targets as well.
 #    grid_search_tasks(std_training_data)
 #    cv_tasks(std_training_data, 10, 16)
+#    exit()
+
 
 #    reports = _validate_training_data(std_training_data)
 #    for i, report in enumerate(reports, 1):
