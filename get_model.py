@@ -177,8 +177,8 @@ def train_model(training_data, Parameters):
     Returns
     ================
     Models: dict, keys are influx indexes and values are regression models
-    Parameters: dict, keys are intergers 1 to 29, values are dicts, such as
-                'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'
+    parameters: dict, keys are intergers 1 to 29, values are dicts, such as
+                'epsilon': 0.01, 'c': 100.0, 'gamma': 0.001, 'kernel': 'rbf'
 
     
     Notes
@@ -189,13 +189,13 @@ def train_model(training_data, Parameters):
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
-#         Parameter = Parameters[i]
-#        model_gen = RegressionModelFactory("SVR", 
-#                                           kernel=Parameter['kernel'], 
-#                                           C=Parameter['C'], 
-#                                           epsilon=Parameter['epsilon'],
-#                                           gamma=Parameter.get('gamma', 0.01)) 
-        model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
+        Parameter = Parameters[i]
+        model_gen = RegressionModelFactory("SVR", 
+                                           kernel=Parameter['kernel'], 
+                                           C=Parameter['C'], 
+                                           epsilon=Parameter['epsilon'],
+                                           gamma=Parameter.get('gamma', 0.01)) 
+#        model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
 #        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
         model = model_gen().model
         model.fit(vectors, label) # train the model
@@ -350,19 +350,21 @@ def cv_tasks(std_training_data, Folds, N_jobs):
 
     [cross_validation_model(std_training_data, m, Folds, N_jobs) for m in training_models]
 
-def svr_training_test(std_training_data):
+def svr_training_test(std_training_data, Parameters):
     """Test SVR training accuracy
 
     Parameters
     =============
-        std_training_data: dict, keys are vID, values are tuples (vector, label)
-                            each vector is 2-D array and label is a 1-D array
+    std_training_data: dict, keys are vID, values are tuples (vector, label)
+                       each vector is 2-D array and label is a 1-D array
+
+    Parameters: dict, keys are intergers 1 to 29, values are dicts, such as
+                'epsilon': 0.01, 'c': 100.0, 'gamma': 0.001, 'kernel': 'rbf'
+
 
     """
-
-
     from numpy import square, mean, sqrt
-    Models = train_model(std_training_data, None)
+    Models = train_model(std_training_data, Parameters)
     print len(Models)
     Influxes = {}
 
@@ -370,13 +372,13 @@ def svr_training_test(std_training_data):
         (Vectors_for_this_v, Label_for_this_v) = std_training_data[vID]
         Label_predict = Model.predict(Vectors_for_this_v)
         MSE = Label_predict - Label_for_this_v
-        if vID==2:
-            print Label_predict
-            print Label_for_this_v
-            print MSE
+#        if vID==2:
+#            print Label_predict
+#            print Label_for_this_v
+#            print MSE
         MSE = sqrt(mean(square(MSE)))
 
-        print vID, MSE
+        print vID, MSE, max(Label_for_this_v), min(Label_for_this_v)
 #        for i, j in enumerate(list(MSE)):
 #            print i+1, j
 #        print list(square(MSE))
@@ -458,22 +460,25 @@ if __name__ == "__main__":
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, Feature_scalers = standardize_features(encoded_training_data)
 
-    std_training_data, Label_scalers = label_std(std_training_data)  # standarize the labels/targets as well.
+#    std_training_data, Label_scalers = label_std(std_training_data)  # standarize the labels/targets as well.
+
+    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+
 #    grid_search_tasks(std_training_data)
 #    cv_tasks(std_training_data, 10, 16)
-#    exit()
+    svr_training_test(std_training_data, Parameters)
+    exit()
 
 
 #    reports = _validate_training_data(std_training_data)
 #    for i, report in enumerate(reports, 1):
 #        print("v = {}, duplicate data index = {}".format(i, report.values()))
 
-    Parameters = load_parameters("svr_both_linear_shuffle.log")
     models = train_model(std_training_data, Parameters)
     cPickle.dump(models, open("models_svm.p", "wb"))
     cPickle.dump(Feature_scalers, open("feature_scalers.p", "wb"))
     cPickle.dump(encoders, open("encoders.p", "wb"))
-    cPickle.dump(Label_scalers, open("label_scalers.p", "wb"))
+#    cPickle.dump(Label_scalers, open("label_scalers.p", "wb"))
 
     cPickle.dump(training_data, open("training_data.p", "wb"))
     cPickle.dump(encoded_training_data, open("encoded_training_data.p", "wb"))
