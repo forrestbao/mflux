@@ -190,11 +190,7 @@ def train_model(training_data, Parameters):
     for i in range(1, 29+1):
         vectors, label = training_data[i]
         Parameter = Parameters[i]
-        model_gen = RegressionModelFactory("SVR",
-                                           kernel=Parameter['kernel'],
-                                           C=Parameter['C'],
-                                           epsilon=Parameter['epsilon'],
-                                           gamma=Parameter.get('gamma', 0.01))
+        model_gen = RegressionModelFactory("SVR", **Parameter)
 #        model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
 #        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
         model = model_gen().model
