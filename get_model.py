@@ -58,7 +58,7 @@ def shuffle_data(Training_data):
         random.shuffle(Shuffled_index)
         New_Feature_vector = [Feature_vector[j] for j in Shuffled_index]
         New_Label = [Labels[j] for j in Shuffled_index]
-        
+
         New_training_data[i] = ([New_Feature_vector, New_Label])
 
     return New_training_data
@@ -180,21 +180,21 @@ def train_model(training_data, Parameters):
     parameters: dict, keys are intergers 1 to 29, values are dicts, such as
                 'epsilon': 0.01, 'c': 100.0, 'gamma': 0.001, 'kernel': 'rbf'
 
-    
+
     Notes
     ===========
-    Parameters are not in use. Now use same parameters for all v's. 
+    Parameters are not in use. Now use same parameters for all v's.
 
     """
     models = {}
     for i in range(1, 29+1):
         vectors, label = training_data[i]
         Parameter = Parameters[i]
-        model_gen = RegressionModelFactory("SVR", 
-                                           kernel=Parameter['kernel'], 
-                                           C=Parameter['C'], 
+        model_gen = RegressionModelFactory("SVR",
+                                           kernel=Parameter['kernel'],
+                                           C=Parameter['C'],
                                            epsilon=Parameter['epsilon'],
-                                           gamma=Parameter.get('gamma', 0.01)) 
+                                           gamma=Parameter.get('gamma', 0.01))
 #        model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
 #        model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
         model = model_gen().model
@@ -292,15 +292,15 @@ def grid_search_tasks(std_training_data):
 
     SVR_PARAMS = {
         "C": 10.0 ** numpy.arange(-4,4),
-        "epsilon": [0., 0.0001, 0.001, 0.01, 0.1],  # experience: epsilon>=0.1 is not good. 
+        "epsilon": [0., 0.0001, 0.001, 0.01, 0.1],  # experience: epsilon>=0.1 is not good.
         "kernel": [
 #       "linear",
         "rbf",
-#        "poly",  # polynomial kernel sucks. Never use it. 
+#        "poly",  # polynomial kernel sucks. Never use it.
 #        "sigmoid",
         # "precomputed"
         ],
-#        "degree": [5,], # because polynomial kernel sucks. Never use it. 
+#        "degree": [5,], # because polynomial kernel sucks. Never use it.
         "gamma": 10.0 ** numpy.arange(-4, 4),
   }
 
@@ -407,10 +407,10 @@ def label_std(Training_data):
                    and
                    Label is a 1-D list, labels for all samples.
 
-    Label_scalers: dict, keys are vIDs and values are sklearn.preprocessing.MinMaxScaler instances for 29 influxes  
+    Label_scalers: dict, keys are vIDs and values are sklearn.preprocessing.MinMaxScaler instances for 29 influxes
 
     sklearn's preprocessing MixMaxScaler does column-wise Minmax scaling.
-    Since influxes have different number of intances, we must loop thru the 29. 
+    Since influxes have different number of intances, we must loop thru the 29.
 
     """
     import sklearn
@@ -429,7 +429,7 @@ def label_std(Training_data):
 
 def load_parameters(File):
     """Load a parameter file from grid search print out
- 
+
     The format of grid search print out:
 	checking duplicate lines
 	model: SVR ({'epsilon': 0.2, 'C': 10, 'kernel': 'linear'})
@@ -483,4 +483,3 @@ if __name__ == "__main__":
     cPickle.dump(training_data, open("training_data.p", "wb"))
     cPickle.dump(encoded_training_data, open("encoded_training_data.p", "wb"))
     cPickle.dump(std_training_data,  open("std_training_data.p", "wb"))
-
