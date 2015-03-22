@@ -208,8 +208,6 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
 
 
     """
-
-
     import sklearn
     print("model: {}".format(model_gen))
     print("v\tscore_accuracy")
@@ -290,8 +288,8 @@ def grid_search_tasks(std_training_data):
         "C": 10.0 ** numpy.arange(-4,4),
         "epsilon": [0., 0.0001, 0.001, 0.01, 0.1],  # experience: epsilon>=0.1 is not good.
         "kernel": [
-#       "linear",
-        "rbf",
+       "linear",
+#        "rbf",
 #        "poly",  # polynomial kernel sucks. Never use it.
 #        "sigmoid",
         # "precomputed"
@@ -321,7 +319,7 @@ def grid_search_tasks(std_training_data):
     ]
 
     FOLDS = 10
-    CORE_NUM = 16
+    CORE_NUM = 32
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
@@ -346,7 +344,7 @@ def cv_tasks(std_training_data, Folds, N_jobs):
 
     [cross_validation_model(std_training_data, m, Folds, N_jobs) for m in training_models]
 
-def svr_training_test(std_training_data, Parameters):
+def svr_training_test(std_training_data, Parameters, Label_scalers=None):
     """Test SVR training accuracy
 
     Parameters
@@ -357,6 +355,7 @@ def svr_training_test(std_training_data, Parameters):
     Parameters: dict, keys are intergers 1 to 29, values are dicts, such as
                 'epsilon': 0.01, 'c': 100.0, 'gamma': 0.001, 'kernel': 'rbf'
 
+    Label_scalers: dict, keys are int 1 to 29, value sare sklearn scaler objects 
 
     """
     from numpy import square, mean, sqrt
@@ -367,6 +366,10 @@ def svr_training_test(std_training_data, Parameters):
     for vID, Model in Models.iteritems():
         (Vectors_for_this_v, Label_for_this_v) = std_training_data[vID]
         Label_predict = Model.predict(Vectors_for_this_v)
+        if Label_scalers != None:
+            Label_predict = Label_scalers[vID].inverse_transform(Label_predict)
+            Label_for_this_v = Label_scalers[vID].inverse_transform(Label_for_this_v)
+
         MSE = Label_predict - Label_for_this_v
 #        if vID==2:
 #            print Label_predict
@@ -374,7 +377,9 @@ def svr_training_test(std_training_data, Parameters):
 #            print MSE
         MSE = sqrt(mean(square(MSE)))
 
-        print vID, MSE, max(Label_for_this_v), min(Label_for_this_v)
+        print "\t&\t".join(map(str, [vID, MSE
+#        , max(Label_for_this_v), min(Label_for_this_v)
+        ])) + "\t\\\\"
 #        for i, j in enumerate(list(MSE)):
 #            print i+1, j
 #        print list(square(MSE))
@@ -395,7 +400,7 @@ def _validate_training_data(training_data):
 
     return reports
 
-def label_std(Training_data):
+def label_std(Training_data, Method="Norm"):
     """standardize the labels in training data
      training_data: a dict, keys are EMPs (e.g., v1, v2, etc.),
                    values are 2-tuples (Feature, Label), where
@@ -412,11 +417,18 @@ def label_std(Training_data):
     import sklearn
     Label_scaled_data = {}
     Label_scalers = {}
+    if Method == "None": # No label std needed 
+        return Training_data, None
+
     for vID, (Vector, Label) in Training_data.iteritems():
-#        Label_scaled = sklearn.preprocessing.scale(Label)  # option 1 of standarization
-        Label_scaler = sklearn.preprocessing.MinMaxScaler().fit(Label)
+        if Method == "Norm":
+            Label_scaler = sklearn.preprocessing.StandardScaler().fit(Label)
+#            Label_scaled = sklearn.preprocessing.scale(Label)  # option 1 of standarization
+        elif Method == "MinMax":
+            Label_scaler = sklearn.preprocessing.MinMaxScaler().fit(Label)
+        else:
+             print "Unrecognized label standarization method "
         Label_scaled = Label_scaler.transform(Label) # Option 2, MinMax scaler
-#        Label_scaled = sklearn.preprocessing.MinMaxScaler().fit_transform(Label)  # OPtion 2, MinMax scalar
 
         Label_scaled_data[vID] = (Vector, Label_scaled)
         Label_scalers[vID] = Label_scaler
@@ -450,7 +462,29 @@ def load_parameters(File):
 
     return Parameters
 
+def test_label_std():
+    """Test the accuracy on labels using different label std methods
+
+    The 3 methods are: no std, normalization, MinMax.
+    We will study RMSE under different normalization 
+   """
+    training_data = read_spreadsheet("wild_and_mutant.csv")
+    training_data = shuffle_data(training_data)
+    encoded_training_data, encoders = one_hot_encode_features(training_data)
+    std_training_data, Feature_scalers = standardize_features(encoded_training_data)
+
+    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+    
+    for Std_method in ["None", "Norm", "MinMax"]:
+        final_training_data, Label_scalers = label_std(std_training_data, Method=Std_method)  # standarize the labels/targets as well.
+
+#    grid_search_tasks(std_training_data)
+#	    cv_tasks(std_training_data, 10, 32)
+        svr_training_test(final_training_data, Parameters, Label_scalers=Label_scalers)
+
 if __name__ == "__main__":
+#    test_label_std()
+#    exit()
     training_data = read_spreadsheet("wild_and_mutant.csv")
 #    training_data = shuffle_data(training_data)
     encoded_training_data, encoders = one_hot_encode_features(training_data)
