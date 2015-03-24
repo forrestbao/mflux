@@ -323,11 +323,12 @@ def grid_search_tasks(std_training_data):
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
-def cv_tasks(std_training_data, Folds, N_jobs):
+def cv_tasks(std_training_data, Folds, N_jobs, Label_scalers):
     """Cross-validation on all v's
 
     :param Folds: number of CV folds
     :param N_jobs: number of CPU cores
+    :param label_scaler: dict, keys are fluxes and values are sklearn scaler objects
 
     """
     import sklearn
@@ -378,7 +379,7 @@ def svr_training_test(std_training_data, Parameters, Label_scalers=None):
         MSE = sqrt(mean(square(MSE)))
 
         print "\t&\t".join(map(str, [vID, MSE
-#        , max(Label_for_this_v), min(Label_for_this_v)
+        , max(Label_for_this_v), min(Label_for_this_v)
         ])) + "\t\\\\"
 #        for i, j in enumerate(list(MSE)):
 #            print i+1, j
@@ -490,13 +491,13 @@ if __name__ == "__main__":
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, Feature_scalers = standardize_features(encoded_training_data)
 
-#    std_training_data, Label_scalers = label_std(std_training_data)  # standarize the labels/targets as well.
+    std_training_data, Label_scalers = label_std(std_training_data, Method="MinMax")  # standarize the labels/targets as well.
 
     Parameters = load_parameters("svr_both_rbf_shuffle.log")
 
 #    grid_search_tasks(std_training_data)
-#    cv_tasks(std_training_data, 10, 16)
-    svr_training_test(std_training_data, Parameters)
+    cv_tasks(std_training_data, 10, 16, Label_scalers)
+#    svr_training_test(std_training_data, Parameters)
     exit()
 
 
