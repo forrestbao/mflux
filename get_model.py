@@ -483,20 +483,38 @@ def test_label_std():
 #	    cv_tasks(std_training_data, 10, 32)
         svr_training_test(final_training_data, Parameters, Label_scalers=Label_scalers)
 
+def prepare_data(Datasheet, Parameter_file=None, Label_std_method="MinMax"):
+    """Prepare all data including scaling
+
+    Patermeters
+    ============
+    Datasheet: str, full path to database spreadsheet file
+    Parameters_file: str, full path to file that defines best parameters for different v. 
+    Label_std_method: str, label preprocessing method, one in ["None", "Norm", "MinMax"] 
+    Feature_std_method: str, feature preprocessing method, currentlyl not used
+
+    """
+    Training_data = read_spreadsheet("wild_and_mutant.csv")
+    Training_data = shuffle_data(Training_data)
+    Encoded_training_data, Encoders = one_hot_encode_features(Training_data)
+    Std_training_data, Feature_scalers = standardize_features(Encoded_training_data)
+
+    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+    
+    Final_training_data, Label_scalers = label_std(Std_training_data, Method=Label_std_method)  # standarize the labels/targets as well.
+
+    return Final_training_data, Feature_scalers, Label_scalers, Encoders
+
 if __name__ == "__main__":
 #    test_label_std()
 #    exit()
-    training_data = read_spreadsheet("wild_and_mutant.csv")
-#    training_data = shuffle_data(training_data)
-    encoded_training_data, encoders = one_hot_encode_features(training_data)
-    std_training_data, Feature_scalers = standardize_features(encoded_training_data)
 
-    std_training_data, Label_scalers = label_std(std_training_data, Method="MinMax")  # standarize the labels/targets as well.
-
-    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+    Datasheet = "wild_and_mutant.csv"
+    Training_data, Feature_scalers, Label_scalers, Encoders\
+    = prepare_data(Datasheet, Parameter_file=None, Label_std_method="MinMax")
 
 #    grid_search_tasks(std_training_data)
-    cv_tasks(std_training_data, 10, 16, Label_scalers)
+    cv_tasks(Training_data, 10, 4, Label_scalers)
 #    svr_training_test(std_training_data, Parameters)
     exit()
 
