@@ -128,10 +128,11 @@ def read_spreadsheet(filename):
                 training_data[i][0].append(vector) # add a row to feature vectors
                 training_data[i][1].append(float(label)) # add one label
 
-    print("checking duplicate lines")
+    print("checking duplicate lines...")
     for k, v in reports.iteritems():
         if len(v) > 1:
             print("line number: {}".format(v))
+    print("Done.")
     return training_data
 
 
@@ -203,20 +204,22 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
     """Do a cross validation on a model using the given training data.
 
     :param training_data: A dict with keys as v, and values as [vectors, label].
-    :param model_gen: A RegressionModel generator.
+    :param model_gen: A RegressionModel generator or a list of that.
     :param Folds: number of CV folds
 
 
     """
     import sklearn
-    print("model: {}".format(model_gen))
+#    print("model: {}".format(model_gen))
     print("v\tscore_accuracy")
     folds = Folds
     for i in range(1, 29 + 1):
         vectors, label = training_data[i]
         label = numpy.asarray(label)
-        model = model_gen()
-
+        if type(model_gen) == dict:
+            model = model_gen[i]()
+        else:
+            model = model_gen()
         # allow shuffleSplit on dataset
 #        print len(label)
         if Folds < 1:
@@ -230,7 +233,7 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
                                                   )
         print("{}\t{} (+/- {})"
               .format(i, scores.mean(), scores.std() * 2))
-
+# This needs to scaled back to real range of fluxes.
 
 def grid_search_cv(training_data, model_gen, params, SCORINGS, CORE_NUM, FOLDS):
     """Do a grid search to find best params for the given model.
@@ -323,27 +326,34 @@ def grid_search_tasks(std_training_data):
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
-def cv_tasks(std_training_data, Folds, N_jobs, Label_scalers):
+def cv_tasks(std_training_data, Folds, N_jobs, Label_scalers, Parameters):
     """Cross-validation on all v's
 
     :param Folds: number of CV folds
     :param N_jobs: number of CPU cores
     :param label_scaler: dict, keys are fluxes and values are sklearn scaler objects
+    :param Parameters: dict, keys are fluxes and values are parameters for all fluxes
 
     """
     import sklearn
     knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
-    svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
-    dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
+#    dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
 
-    training_models = [
+    if Parameters != None: # need to create one instances for one flux
+        svr_model_gen = {}
+        for i in xrange(1, 29+1):
+            svr_model_gen[i] = RegressionModelFactory("SVR", **(Parameters[i]))
+    else: # same set of parameters for all SVR models.
+        svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
+
+    Classifier_models = [
 #        knn_model_gen,
         svr_model_gen,
 #        dtree_model_gen,
     ]
 
 
-    [cross_validation_model(std_training_data, m, Folds, N_jobs) for m in training_models]
+    [cross_validation_model(std_training_data, m, Folds, N_jobs) for m in Classifier_models]
 
 def svr_training_test(std_training_data, Parameters, Label_scalers=None):
     """Test SVR training accuracy
@@ -361,7 +371,6 @@ def svr_training_test(std_training_data, Parameters, Label_scalers=None):
     """
     from numpy import square, mean, sqrt
     Models = train_model(std_training_data, Parameters)
-    print len(Models)
     Influxes = {}
 
     for vID, Model in Models.iteritems():
@@ -483,21 +492,42 @@ def test_label_std():
 #	    cv_tasks(std_training_data, 10, 32)
         svr_training_test(final_training_data, Parameters, Label_scalers=Label_scalers)
 
+def prepare_data(Datasheet, Parameter_file=None, Label_std_method="MinMax"):
+    """Prepare all data including scaling
+
+    Patermeters
+    ============
+    Datasheet: str, full path to database spreadsheet file
+    Parameters_file: str, full path to file that defines best parameters for different v. 
+    Label_std_method: str, label preprocessing method, one in ["None", "Norm", "MinMax"] 
+    Feature_std_method: str, feature preprocessing method, currentlyl not used
+
+    """
+    Training_data = read_spreadsheet("wild_and_mutant.csv")
+    Training_data = shuffle_data(Training_data)
+    Encoded_training_data, Encoders = one_hot_encode_features(Training_data)
+    Std_training_data, Feature_scalers = standardize_features(Encoded_training_data)
+
+    if Parameter_file != None:
+        Parameters = load_parameters(Parameter_file)
+    else:
+        Parameters = None    
+
+    Final_training_data, Label_scalers = label_std(Std_training_data, Method=Label_std_method)  # standarize the labels/targets as well.
+
+    return Final_training_data, Feature_scalers, Label_scalers, Encoders, Parameters
+
 if __name__ == "__main__":
 #    test_label_std()
 #    exit()
-    training_data = read_spreadsheet("wild_and_mutant.csv")
-#    training_data = shuffle_data(training_data)
-    encoded_training_data, encoders = one_hot_encode_features(training_data)
-    std_training_data, Feature_scalers = standardize_features(encoded_training_data)
 
-    std_training_data, Label_scalers = label_std(std_training_data, Method="MinMax")  # standarize the labels/targets as well.
-
-    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+    Datasheet = "wild_and_mutant.csv"
+    Parameter_file = "svr_both_rbf_shuffle.log"
+    Training_data, Feature_scalers, Label_scalers, Encoders, Parameters\
+    = prepare_data(Datasheet, Parameter_file=Parameter_file, Label_std_method="MinMax")
 
 #    grid_search_tasks(std_training_data)
-    cv_tasks(std_training_data, 10, 16, Label_scalers)
-#    svr_training_test(std_training_data, Parameters)
+    cv_tasks(Training_data, 10, 4, Label_scalers, Parameters)
     exit()
 
 
