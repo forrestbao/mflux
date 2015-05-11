@@ -135,7 +135,7 @@ def predict(Vector, Substrates):
         Influx_local = Label_scalers[vID].inverse_transform([Influx_local])[0]
         Influxes[vID] = Influx_local
     
-    Influxes = adjust_influxes(Influxes, Substrates)
+#    Influxes = adjust_influxes(Influxes, Substrates) # do not adjust as of 2015-05-10
     T = time.clock() -T
     
     print_influxes(Influxes)
