@@ -1,3 +1,123 @@
+def quadprog_adjust(Substrates, Fluxes):
+    """adjust values from ML
+
+    Substrates: OrderedDict, keys as integers and values as floats, e.g., {1:0.25, 2:0, 3:0.75, ...}
+    Fluxes: Dict, keys as integers and values as floats, e.g., {1:99.5, 2:1.1, ...}
+
+    Returns 
+    =========
+     Solution: a list of 29 floats, adjusted flux values
+
+    Notes 
+    ========
+    In Substrates, the mapping from keys to real chemicals is as follows:
+ 	    1. Glucose
+        2. Fructose
+        3. Galactose
+        4. Gluconate
+        5. Glutamate
+        6. Citrate
+        7. Xylose
+        8. Succinate
+        9. Malate
+        10. Lactate
+        11. Pyruvate
+        12. Glycerol
+        13. Acetate
+        14. NaHCO3
+   
+    Formulation of quadratic problems in MATLAB optimization toolbox are different from that in cvxopt.
+    Here is a mapping between variables
+    * H => P (the quadratic terms in objective function)
+    * f => q (the linear terms in objective function)
+    * A and eyes for boundaries => G (coefficients for linear terms in inequality constraints)
+	* b, -lb, ub => h (coefficients for constant terms in inequality constraints)
+    * Aeq => A 
+    * Beq => b
+	
+    """
+
+    import numpy
+    import cvxopt, cvxopt.solvers
+
+    Substrate2Index= {"glucose":1, "galactose":3, "fructose":2, "gluconate":4, "glutamate":5, "citrate":6, "xylose":7, "succinate":8, "malate":9, "lactate":10, "pyruvate":11, "glycerol":12, "acetate":13}
+
+    Ubs = numpy.array([[100,99.5,99.3,99.3,216.6,
+           196.2,232,213.1,135,151.4,
+           113.7,94.1,41.2,47.5,71,
+           47.5,189,189,189,194,
+           194,194,181.5,55,148,
+           193.2,151,149.8,104.2043714]])
+    Ubs = Ubs.transpose() # turn it into column vector, 29x1
+
+    Lbs = numpy.array([[0,-99.9,-51.5,-51.5,-13.5,
+           -23.3,-36,-7.9,-144,0,
+           0,-33,-94.4,-2,-6.6,
+           -2,0,-0.1,-0.1,0,
+           -105,-106,-144.3,0,0,
+           0,-100,-67.60986805,-13.5]])
+    Lbs = Lbs.transpose() # turn it into column vector, 29x1
+
+    Aineq = numpy.zeros(15+1, 29+1) # the plus 1 is to tackle MATLAB 1-index
+    Aineq[1,1] = 1; Aineq[1,2] = -1; Aineq[1,10] = -1;    
+    Aineq[2,2] = 1;Aineq[2,3] = -1; Aineq[2,15] = 1; Aineq[2,16] = 1; 
+    Aineq[3,3] = 1; Aineq[3,4] = 1; Aineq[3,5] = -1;Aineq[3,14] = 1; Aineq[3,15] = 1;Aineq[3,16] = -1;Aineq[3,25] = 1;
+    Aineq[4,5] = 1; Aineq[4,6] = -1; 
+    Aineq[5,6] = 1; Aineq[5,7] = -1; Aineq[5,28] = -1; 
+    Aineq[6,7] = 1; Aineq[6,8] = -1; Aineq[6,25] = 1;Aineq[6,27] = -1; Aineq[6,29] = 1;  
+    Aineq[7,8] = 1; Aineq[7,9] = -1; Aineq[7,17] = -1;Aineq[7,24] = -1; Aineq[7,26] = -1; 
+    Aineq[8,13] = 1; Aineq[8,14] = -1;  
+    Aineq[9,16] = 1; Aineq[9,15] = -1; 
+    Aineq[10,19] = 1; Aineq[10,20] = -1;
+    Aineq[11,23] = 1; Aineq[11,17] = -1;Aineq[11,28] = 1;
+    Aineq[12,21] = -1; Aineq[12,22] = 1;
+    Aineq = Aineq[1:, 1:] # convert 1-index to 0-index
+    Aineq = -1 * Aineq
+   
+    Aineq = numpy.vstack(Aineq, -numpy.eye(29), numpy.eye(29)) # add eye matrixes for Lbs and Ubs
+
+    bineq = numpy.zeros((15+1, 1+1))
+    bineq[2,1]= 100 * Substrates[Substrate2Index["fructose"]]
+    bineq[6,1]= 100 * Substrates[Substrate2Index["pyruvate"]]
+    bineq[10,1] = 100 * Substrates[Substrate2Index["glutamate"]]
+    bineq = bineq[1:, 1:] 
+    bineq = numpy.vstack(bineq, -Lbs, Ubs)
+
+    Aeq = numpy.zeros((11+1, 29+1))
+    Aeq[1,1] = 1; 
+    Aeq[2,3] = 1; Aeq[2,4] = -1; 
+    Aeq[3,11] = 1; Aeq[3,12] = -1; Aeq[3,13] = -1; 
+    Aeq[4,14] = 1; Aeq[4,16] = -1;  
+    Aeq[5,10] = 1; Aeq[5,11] = -1; Aeq[5,25] = -1; 
+    Aeq[6,18] = 1; Aeq[6,17] = -1;  
+    Aeq[7,15] = 1; Aeq[7,12] = -1; Aeq[7,14] = 1; 
+    Aeq[8,24] = 1; Aeq[8,18] = -1; Aeq[8,19] = 1; 
+    Aeq[9,22] = -1; Aeq[9,23] = 1; Aeq[9,24] = -1;Aeq[9,29] = 1; 
+    Aeq[10,20] = 1; Aeq[10,24] = 1;Aeq[10,21] = -1; 
+    Aeq = Aeq[1:, 1:] # convert 1-index to 0-index
+
+    beq = numpy.zeros((11+1,1+1));
+    beq[1,1] = 100 * [Substrates[Substrate2Index["glucose"]] + Substrates[Substrate2Index["galactose"]];
+    beq[2,1] = -100 * Substrates[Substrate2Index["glycerol"]];
+    beq[5,1] = -100 * Substrates[Substrate2Index["gluconate"]];
+    beq[6,1] = 100 * Substrates[Substrate2Index["citrate"]];
+    beq[7,1] = 100 * Substrates[Substrate2Index["xylose"]];
+    beq[9,1] = 100 * Substrates[Substrate2Index["malate"]];
+    beq[10,1]= -100 * Substrates[Substrate2Index["succinate"]];
+	beq = beq[1:, 1:] # convert 1-index to 0-index
+
+    P = numpy.eye((5))
+    q = [Fluxes[i] for i in range(1, 29+1)]
+    q = numpy.matrix((q))
+
+    [Aineq, bineq, Aeq, beq, P, q] = map(numpy.matrix,  [Aineq, bineq, Aeq, beq, P, q])
+
+    Solv = cvxopt.solvers.qp(P, q, Aineq, bineq, Aeq, beq)
+
+    Solution = Solv['x']
+
+    return Solution
+
 def test(S):
     print S
 
@@ -46,7 +166,23 @@ def print_influxes(Influxes):
 
 
 def process_input(Features):
-    """Process the result from CGI parsing to form feature vector including substrate matrix
+    """Process the result from CGI parsing to form feature vector including substrate matrixi
+
+    Substrates: OrderedDict, keys as integers and values as floats
+        1. Glucose
+        2. Fructose
+        3. Galactose
+        4. Gluconate
+        5. Glutamate
+        6. Citrate
+        7. Xylose
+        8. Succinate
+        9. Malate
+        10. Lactate
+        11. Pyruvate
+        12. Glycerol
+        13. Acetate
+        14. NaHCO3
     """
 
     Num_substrates = 14 # excluding other carbon
