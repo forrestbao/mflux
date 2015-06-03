@@ -34,7 +34,13 @@ def quadprog_adjust(Substrates, Fluxes):
 	* b, -lb, ub => h (coefficients for constant terms in inequality constraints)
     * Aeq => A 
     * Beq => b
-	
+
+    Example
+    ============
+    >>> Substrates = {1:1, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0}
+    >>> Fluxes = {1: 100.0, 2: -2.7159, 3: 15.2254, 4: 17.7016, 5: 110.9973, 6: 91.8578, 7: 137.7961, 8: 91.1558, 9: -0.7373, 10: 94.1518, 11: 24.1126, 12: 21.231, 13: 2.8816, 14: 11.0324, 15: 10.1986, 16: 11.0324, 17: 79.4203, 18: 79.4203, 19: 67.9442, 20: 67.8806, 21: 79.3567, 22: 79.3567, 23: 64.0876, 24: 11.4761, 25: 70.0392, 26: -1.2424, 27: 0.0059, 28: 23.2159, 29: 26.7451}
+    >>> import libflux
+    >>> libflux..quadprog_adjust(Substrates, Fluxes)
     """
 
     import numpy
@@ -58,7 +64,7 @@ def quadprog_adjust(Substrates, Fluxes):
            0,-100,-67.60986805,-13.5]])
     Lbs = Lbs.transpose() # turn it into column vector, 29x1
 
-    Aineq = numpy.zeros(15+1, 29+1) # the plus 1 is to tackle MATLAB 1-index
+    Aineq = numpy.zeros((15+1, 29+1)) # the plus 1 is to tackle MATLAB 1-index
     Aineq[1,1] = 1; Aineq[1,2] = -1; Aineq[1,10] = -1;    
     Aineq[2,2] = 1;Aineq[2,3] = -1; Aineq[2,15] = 1; Aineq[2,16] = 1; 
     Aineq[3,3] = 1; Aineq[3,4] = 1; Aineq[3,5] = -1;Aineq[3,14] = 1; Aineq[3,15] = 1;Aineq[3,16] = -1;Aineq[3,25] = 1;
@@ -74,14 +80,14 @@ def quadprog_adjust(Substrates, Fluxes):
     Aineq = Aineq[1:, 1:] # convert 1-index to 0-index
     Aineq = -1 * Aineq
    
-    Aineq = numpy.vstack(Aineq, -numpy.eye(29), numpy.eye(29)) # add eye matrixes for Lbs and Ubs
+    Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
 
     bineq = numpy.zeros((15+1, 1+1))
     bineq[2,1]= 100 * Substrates[Substrate2Index["fructose"]]
     bineq[6,1]= 100 * Substrates[Substrate2Index["pyruvate"]]
     bineq[10,1] = 100 * Substrates[Substrate2Index["glutamate"]]
     bineq = bineq[1:, 1:] 
-    bineq = numpy.vstack(bineq, -Lbs, Ubs)
+    bineq = numpy.vstack([bineq, -Lbs, Ubs])
 
     Aeq = numpy.zeros((11+1, 29+1))
     Aeq[1,1] = 1; 
@@ -97,20 +103,22 @@ def quadprog_adjust(Substrates, Fluxes):
     Aeq = Aeq[1:, 1:] # convert 1-index to 0-index
 
     beq = numpy.zeros((11+1,1+1));
-    beq[1,1] = 100 * [Substrates[Substrate2Index["glucose"]] + Substrates[Substrate2Index["galactose"]];
+    beq[1,1] = 100 * (Substrates[Substrate2Index["glucose"]] + Substrates[Substrate2Index["galactose"]]);
     beq[2,1] = -100 * Substrates[Substrate2Index["glycerol"]];
     beq[5,1] = -100 * Substrates[Substrate2Index["gluconate"]];
     beq[6,1] = 100 * Substrates[Substrate2Index["citrate"]];
     beq[7,1] = 100 * Substrates[Substrate2Index["xylose"]];
     beq[9,1] = 100 * Substrates[Substrate2Index["malate"]];
     beq[10,1]= -100 * Substrates[Substrate2Index["succinate"]];
-	beq = beq[1:, 1:] # convert 1-index to 0-index
+    beq = beq[1:, 1:] # convert 1-index to 0-index
 
-    P = numpy.eye((5))
+    P = numpy.eye((29))
     q = [Fluxes[i] for i in range(1, 29+1)]
     q = numpy.matrix((q))
 
     [Aineq, bineq, Aeq, beq, P, q] = map(numpy.matrix,  [Aineq, bineq, Aeq, beq, P, q])
+
+    print map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])
 
     Solv = cvxopt.solvers.qp(P, q, Aineq, bineq, Aeq, beq)
 
