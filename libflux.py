@@ -66,11 +66,13 @@ def quadprog_adjust(Substrates, Fluxes):
 
     Aineq = numpy.zeros((12+1, 29+1)) # the plus 1 is to tackle MATLAB 1-index
     Aineq[1,1] = 1; Aineq[1,2] = -1; Aineq[1,10] = -1;    
+#    Aineq[2,2] = 1;Aineq[2,3] = -1; Aineq[2,15] = 1; Aineq[2,16] = 1; 
+#    Aineq[3,3] = 1; Aineq[3,4] = 1; Aineq[3,5] = -1;Aineq[3,14] = 1; Aineq[3,15] = 1; Aineq[3,16] = 1; Aineq[3,25] = 1;
     Aineq[2,2] = 1;Aineq[2,3] = -1; Aineq[2,16] = 1; 
     Aineq[3,3] = 1; Aineq[3,4] = 1; Aineq[3,5] = -1;Aineq[3,14] = 1; Aineq[3,25] = 1;
     Aineq[4,5] = 1; Aineq[4,6] = -1; 
     Aineq[5,6] = 1; Aineq[5,7] = -1; Aineq[5,28] = -1; 
-    Aineq[6,7] = 1; Aineq[6,8] = -1; Aineq[6,25] = 1;Aineq[6,27] = -1; Aineq[6,29] = 1;  
+    Aineq[6,7] = 1; Aineq[6,8] = -1; Aineq[6,25] = 1;Aineq[6,27] = -1; Aineq[6,29] = 1;
     Aineq[7,8] = 1; Aineq[7,9] = -1; Aineq[7,17] = -1;Aineq[7,24] = -1; Aineq[7,26] = -1; 
     Aineq[8,13] = 1; Aineq[8,14] = -1;  
     Aineq[9,16] = 1; Aineq[9,15] = -1; 
@@ -119,8 +121,8 @@ def quadprog_adjust(Substrates, Fluxes):
     q = [[Fluxes[i] for i in range(1, 29+1)]]
     q = numpy.array((q)).transpose()
 
-    print map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])
-    print map(type, [Aineq, bineq, Aeq, beq, P, q])
+#    print map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])
+#    print map(type, [Aineq, bineq, Aeq, beq, P, q])
 
 #    [bineq] = map(cvxopt.matrix, [bineq])
 
@@ -134,7 +136,12 @@ def quadprog_adjust(Substrates, Fluxes):
 
     Solution = Solv['x']
 
-    print Solution
+    Solution = numpy.array(Solution)[:,0]
+
+    numpy.set_printoptions(precision=5, suppress=True)
+
+    for Idx, Value in enumerate(Solution):
+        print Idx+1, Value, Fluxes[Idx+1] # convert from 0-index to 1-index
 
     return Solution
 
