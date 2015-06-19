@@ -119,7 +119,7 @@ def quadprog_adjust(Substrates, Fluxes):
 
     P = numpy.eye((29))
     q = [[Fluxes[i] for i in range(1, 29+1)]]
-    q = numpy.array((q)).transpose()
+    q = -1*numpy.array((q)).transpose()
 
 #    print map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])
 #    print map(type, [Aineq, bineq, Aeq, beq, P, q])
@@ -141,7 +141,7 @@ def quadprog_adjust(Substrates, Fluxes):
     numpy.set_printoptions(precision=5, suppress=True)
 
     for Idx, Value in enumerate(Solution):
-        print Idx+1, Value, Fluxes[Idx+1] # convert from 0-index to 1-index
+        print "{0}\t{1:.4f}\t{2:.4f}".format(Idx+1, Value, Fluxes[Idx+1]) # convert from 0-index to 1-index
 
     return Solution
 
