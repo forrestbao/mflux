@@ -77,6 +77,7 @@ def species_db_to_constraints(DB):
             Logic_exp.append( ( All_vars[i] + "==" + str(Entry[i]) ) )
         Logic_exp.append( ( "Oxygen in [" + Oxygen_values + "]" )  ) 
         Logic_exp = " and ".join(Logic_exp)
+        Logic_exp = "not (" + Logic_exp + ")"
         print Logic_exp
         problem.addConstraint(eval(Foo + Logic_exp), tuple(All_vars))
 
