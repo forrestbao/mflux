@@ -50,22 +50,25 @@ def species_db_to_constraints(DB):
     problem: an instance of python-constraint
         containing only constraints but no variable domains
 
+    Notes
+    ========
+    the problem has a solution if any of the rules set in species database is VIOLATED. 
+    In other words, if the problem has solution, then the input does NOT make sense. 
+
     """
     import constraint # python-constraint module
     problem = constraint.Problem() # initialize the CSP problem
 
     # create variables
-    problem.addVariable("Species", range(1,41+1))
-    problem.addVariable("Substrate_rate", range(0, 100+1))
-    problem.addVariable("Oxygen", [1,2,3])
-    for i in xrange(1, 14+1):
-        problem.addVariable("Carbon"+str(i), [True, False]) # create one variable for each carbon source
-    # This part should from user input
-
+#    problem.addVariable("Species", range(1,41+1))
+#    problem.addVariable("Substrate_rate", range(0, 100+1))
+#    problem.addVariable("Oxygen", [1,2,3])
+#    for i in xrange(1, 14+1):
+#        problem.addVariable("Carbon"+str(i), [True, False]) # create one variable for each carbon source
+    # This part should be from user input
 
     # add constraints, where each entry in DB is a constraint. 
     #   create the lambda functions
-
     All_vars= ["Species", "Substrate_rate", "Oxygen"] + ["Carbon"+str(i) for i in xrange(1, 14+1)]
     for Entry in DB:
         Oxygen_values = Entry[1] # as string
@@ -77,8 +80,44 @@ def species_db_to_constraints(DB):
             Logic_exp.append( ( All_vars[i] + "==" + str(Entry[i]) ) )
         Logic_exp.append( ( "Oxygen in [" + Oxygen_values + "]" )  ) 
         Logic_exp = " and ".join(Logic_exp)
-        Logic_exp = "not (" + Logic_exp + ")"
-        print Logic_exp
+        Logic_exp = "not (" + Logic_exp + ")"  # De Morgan's Law
+#        print Logic_exp
         problem.addConstraint(eval(Foo + Logic_exp), tuple(All_vars))
 
     return problem # just return one solution, if no solution, return is NoneType
+
+def input_ok(problem, Vector):
+    """Turn user inputs into domains of variables for the CSP problem and then solve. 
+
+    Parameters
+    ============
+    problem: a python-constraint instance with constraints built 
+    Vector: the feature vector, float numbers, [Species, Reactor, Nutrient, Oxygen, Method, MFA, Energy, Growth_rate, Substrate_uptake_rate] + ratio of 14 carbon sources in the order: "glucose", "fructose", "galactose", "gluconate", "glutamate", "citrate", "xylose", "succinate", "malate", "lactate", "pyruvate", "glycerol", "acetate",  "NaHCO3"
+
+    Notes
+    ========
+    In current formulation, the problem has a solution if any of the rules set in species database is VIOLATED. 
+    In other words, if the problem has solution, then the input does NOT make sense. 
+
+    Example
+    =========
+    >>> import clp 
+    >>> DB = clp.process_species_db("SI_1_species_db.csv")
+    >>> P  = clp.species_db_to_constraints(DB)
+    >>> Vector = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0, 0.56, 0, 0, 0.34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0]
+    >>> print clp.input_ok(P, Vector)
+
+    """
+
+    problem.addVariable("Species", [Vector[0]])
+    problem.addVariable("Substrate_rate", [Vector[10]])
+    problem.addVariable("Oxygen", [Vector[3]])
+    for i in xrange(1, 14+1):
+        problem.addVariable("Carbon"+str(i), [True if Vector[i+8]>0 else False]) # create one variable for each carbon source
+    
+    if problem.getSolution() == []:# no solution, pass test
+        return True
+    else:
+        return False
+
+

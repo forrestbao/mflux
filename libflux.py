@@ -215,6 +215,9 @@ def process_input(Features):
         12. Glycerol
         13. Acetate
         14. NaHCO3
+    
+    Feature vectors order: [Species, Reactor, Nutrient, Oxygen, Method, MFA, Energy, Growth_rate, Substrate_uptake_rate] + ratio of 14 carbon sources in the order above 
+
     """
 
     Num_substrates = 14 # excluding other carbon
@@ -228,6 +231,13 @@ def process_input(Features):
     Vector = [Features[Feature_name] for Feature_name in ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "MFA", "Energy", "Growth_rate", "Substrate_uptake_rate"]]
     Vector += [Substrates[i] for i in range(1, Num_substrates+1)]
     Vector.append(Features["Substrate_other"]) # Other carbon source
+
+    # Print input check 
+    import clp
+    DB = clp.process_species_db("SI_1_species_db.csv")
+    P  = clp.species_db_to_constraints(DB)
+    if not input_ok(P, Vector):
+        print "<p><font color=\"red\">The input data might has violate the oxygen, substrate uptake rate or carbon sources of the selected species.</font></p>."
 
     # Print debug info
 
