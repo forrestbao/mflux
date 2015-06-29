@@ -76,8 +76,12 @@ def species_db_to_constraints(DB):
         Foo += ", ".join(All_vars) # done with listing all variables
         Foo += ": " 
         Logic_exp = ["Substrate_rate<=" + str(Entry[2])]
-        for i in [0,2] + range(3, 3+14): # skip Oxygen
+        for i in [0,2]:
             Logic_exp.append( ( All_vars[i] + "==" + str(Entry[i]) ) )
+
+        for i in range(3, 3+14): # skip Oxygen
+            if not Entry[i]: # only use false ones to create the constraint
+                Logic_exp.append( ( All_vars[i] + "==" + str(Entry[i]) ) )
         Logic_exp.append( ( "Oxygen in [" + Oxygen_values + "]" )  ) 
         Logic_exp = " and ".join(Logic_exp)
         Logic_exp = "not (" + Logic_exp + ")"  # De Morgan's Law
@@ -114,8 +118,10 @@ def input_ok(problem, Vector):
     problem.addVariable("Oxygen", [Vector[3]])
     for i in xrange(1, 14+1):
         problem.addVariable("Carbon"+str(i), [True if Vector[i+8]>0 else False]) # create one variable for each carbon source
+
+    Solutions = problem.getSolutions()
     
-    if problem.getSolution() == []:# no solution, pass test
+    if Solutions == []:# no solution, pass test
         return True
     else:
         return False
