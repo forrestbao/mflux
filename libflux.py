@@ -236,7 +236,7 @@ def process_input(Features):
     import clp
     DB = clp.process_species_db("SI_1_species_db.csv")
     P  = clp.species_db_to_constraints(DB)
-    if not input_ok(P, Vector):
+    if not clp.input_ok(P, Vector):
         print "<p><font color=\"red\">The input data might has violate the oxygen, substrate uptake rate or carbon sources of the selected species.</font></p>."
 
     # Print debug info
