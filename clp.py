@@ -75,14 +75,14 @@ def species_db_to_constraints(DB):
         Foo = "lambda "
         Foo += ", ".join(All_vars) # done with listing all variables
         Foo += ": " 
-        Logic_exp = ["Substrate_rate<=" + str(Entry[2])]
-        for i in [0,2]:
-            Logic_exp.append( ( All_vars[i] + "==" + str(Entry[i]) ) )
+        Logic_exp = ["Substrate_rate<=" + str(Entry[2]), "Species==" + str(Entry[0])]
 
-        for i in range(3, 3+14): # skip Oxygen
+        for i in range(3, 3+14): # carbon sources
             if not Entry[i]: # only use false ones to create the constraint
                 Logic_exp.append( ( All_vars[i] + "==" + str(Entry[i]) ) )
+
         Logic_exp.append( ( "Oxygen in [" + Oxygen_values + "]" )  ) 
+
         Logic_exp = " and ".join(Logic_exp)
         Logic_exp = "not (" + Logic_exp + ")"  # De Morgan's Law
 #        print Logic_exp
@@ -108,20 +108,26 @@ def input_ok(problem, Vector):
     >>> import clp 
     >>> DB = clp.process_species_db("SI_1_species_db.csv")
     >>> P  = clp.species_db_to_constraints(DB)
-    >>> Vector = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 5.0, 0.56, 0, 0, 0.34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0]
+    >>> Vector = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.72, 10.47, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0]  
     >>> print clp.input_ok(P, Vector)
+    True
+    >>> P.reset() # another test
+    >>> P  = clp.species_db_to_constraints(DB)
+    >>> Vector = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.72, 17, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0.0] 
+    >>> print clp.input_ok(P, Vector)
+    False
 
     """
 
     problem.addVariable("Species", [Vector[0]])
-    problem.addVariable("Substrate_rate", [Vector[10]])
+    problem.addVariable("Substrate_rate", [Vector[8]])
     problem.addVariable("Oxygen", [Vector[3]])
     for i in xrange(1, 14+1):
         problem.addVariable("Carbon"+str(i), [True if Vector[i+8]>0 else False]) # create one variable for each carbon source
 
-    Solutions = problem.getSolutions()
+    Solutions = problem.getSolution()
     
-    if Solutions == []:# no solution, pass test
+    if Solutions == None:# no a single solution, pass test
         return True
     else:
         return False
