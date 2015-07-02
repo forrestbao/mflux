@@ -1,5 +1,5 @@
 
-def quadprog_adjust(Substrates, Fluxes, Debug):
+def quadprog_adjust(Substrates, Fluxes, Debug=False):
     """adjust values from ML
 
     Parameters
@@ -320,7 +320,7 @@ def predict(Vector, Substrates):
 #    Influxes = adjust_influxes(Influxes, Substrates) # do not adjust as of 2015-05-10
     T = time.clock() -T
    
-    
+    Influxes = quadprog_adjust(Substrates, Fluxes)
  
     print_influxes(Influxes)
 
