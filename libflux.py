@@ -1,17 +1,16 @@
-def input_check(P, Values):
-    """
-    """
-    pass
 
-def quadprog_adjust(Substrates, Fluxes):
+def quadprog_adjust(Substrates, Fluxes, Debug):
     """adjust values from ML
 
+    Parameters
+    ============
     Substrates: OrderedDict, keys as integers and values as floats, e.g., {1:0.25, 2:0, 3:0.75, ...}
     Fluxes: Dict, keys as integers and values as floats, e.g., {1:99.5, 2:1.1, ...}
+    Debug: Boolean, True for showing debug info and False (default) for no.
 
     Returns 
     =========
-     Solution: an ndarray of 29 floats, adjusted flux values
+     Solution: Dict, keys as integers and values as floats, e.g., {1:99.5, 2:1.1, ...}
 
     Notes 
     ========
@@ -141,12 +140,16 @@ def quadprog_adjust(Substrates, Fluxes):
 
     Solution = Solv['x']
 
-    Solution = numpy.array(Solution)[:,0]
+    Solution = numpy.array(Solution)[:,0] # conversion from cvxopt's matrix to numpy array
 
-    numpy.set_printoptions(precision=5, suppress=True)
+    if Debug:
 
-    for Idx, Value in enumerate(Solution):
-        print "{0}\t{1:.4f}\t{2:.4f}".format(Idx+1, Value, Fluxes[Idx+1]) # convert from 0-index to 1-index
+        numpy.set_printoptions(precision=5, suppress=True)
+
+        for Idx, Value in enumerate(Solution):
+            print "{0}\t{1:.4f}\t{2:.4f}".format(Idx+1, Value, Fluxes[Idx+1]) # convert from 0-index to 1-index
+
+    Solution = {i+1: Solution[i] for i in xrange(29)} # turn from numpy array to dict 
 
     return Solution
 
@@ -316,7 +319,9 @@ def predict(Vector, Substrates):
     
 #    Influxes = adjust_influxes(Influxes, Substrates) # do not adjust as of 2015-05-10
     T = time.clock() -T
+   
     
+ 
     print_influxes(Influxes)
 
     print """</p>\
