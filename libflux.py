@@ -1,5 +1,5 @@
 
-def quadprog_adjust(Substrates, Fluxes, Debug=False):
+def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     """adjust values from ML
 
     Parameters
@@ -7,6 +7,9 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False):
     Substrates: OrderedDict, keys as integers and values as floats, e.g., {1:0.25, 2:0, 3:0.75, ...}
     Fluxes: Dict, keys as integers and values as floats, e.g., {1:99.5, 2:1.1, ...}
     Debug: Boolean, True for showing debug info and False (default) for no.
+    Label_scaler: sklearn.preprocessing.standardScaler or .MinMaxScaler 
+                  Forward transform is from fluxes in true range to scaled range 
+                  Inverse transform is from scaled range to true range
 
     Returns 
     =========
@@ -38,6 +41,10 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False):
 	* b, -lb, ub => h (coefficients for constant terms in inequality constraints)
     * Aeq => A 
     * Beq => b
+
+    Unimplemented features:
+    1. Using scaled values for quadprog
+
 
     Example
     ============
@@ -85,15 +92,19 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False):
     Aineq[12,21] = -1; Aineq[12,22] = 1;
     Aineq = Aineq[1:, 1:] # convert 1-index to 0-index
     Aineq = -1 * Aineq # because in standarized formulation, it's Ax<=b but in our paper it is Ax>=b
-   
-    Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
+  
+    if Label_scalers == None: # if flux in their true range instead of scaled range
+        Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
+    
 
     bineq = numpy.zeros((12+1, 1+1))
     bineq[2,1]= 100 * Substrates[Substrate2Index["fructose"]]
     bineq[6,1]= 100 * Substrates[Substrate2Index["pyruvate"]]
     bineq[10,1] = 100 * Substrates[Substrate2Index["glutamate"]]
     bineq = bineq[1:, 1:] # convert 1-index to 0-index
-    bineq = numpy.vstack([bineq, -Lbs, Ubs])
+
+    if Label_scalers == None: # if flux in their true range instead of scaled range
+        bineq = numpy.vstack([bineq, -Lbs, Ubs])
 
     Aeq = numpy.zeros((10+1, 29+1))
     Aeq[1,1] = 1; 
@@ -104,7 +115,7 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False):
     Aeq[6,18] = 1; Aeq[6,17] = -1;  
     Aeq[7,15] = 1; Aeq[7,12] = -1; Aeq[7,14] = 1; 
     Aeq[8,24] = 1; Aeq[8,18] = -1; Aeq[8,19] = 1; 
-    Aeq[9,22] = -1; Aeq[9,23] = 1; Aeq[9,24] = -1;Aeq[9,29] = 1; 
+    Aeq[9,22] = -1; Aeq[9,23] = 1; Aeq[9,24] = -1; Aeq[9,29] = 1; 
     Aeq[10,20] = 1; Aeq[10,24] = 1;Aeq[10,21] = -1; 
     Aeq = Aeq[1:, 1:] # convert 1-index to 0-index
     Aeq = numpy.matrix(Aeq)
@@ -121,8 +132,16 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False):
     beq = beq[1:, 1:] # convert 1-index to 0-index
     beq = numpy.matrix(beq)
 
-    P = numpy.eye((29))
-    q = [[Fluxes[i] for i in range(1, 29+1)]]
+    if Label_scalers == None:
+        P = numpy.eye((29))
+        q = [[Fluxes[i] for i in range(1, 29+1)]]
+    else:
+        P = numpy.eye((29)) # incomplete here  
+        q = [[Label_scaler.transform(Fluxes[i]) for i in range(1, 29+1)]]
+        if Debug:
+            for i in range(1,29+1): 
+                pass
+
     q = -1*numpy.array((q)).transpose()
 
 #    print map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])
@@ -141,6 +160,9 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False):
     Solution = Solv['x']
 
     Solution = numpy.array(Solution)[:,0] # conversion from cvxopt's matrix to numpy array
+
+    
+
 
     if Debug:
 
