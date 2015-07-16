@@ -93,8 +93,8 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     Aineq = Aineq[1:, 1:] # convert 1-index to 0-index
     Aineq = -1 * Aineq # because in standarized formulation, it's Ax<=b but in our paper it is Ax>=b
   
-    if Label_scalers == None: # if flux in their true range instead of scaled range
-        Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
+#    if Label_scalers == None: # if flux in their true range instead of scaled range
+#        Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
     
 
     bineq = numpy.zeros((12+1, 1+1))
@@ -103,8 +103,8 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     bineq[10,1] = 100 * Substrates[Substrate2Index["glutamate"]]
     bineq = bineq[1:, 1:] # convert 1-index to 0-index
 
-    if Label_scalers == None: # if flux in their true range instead of scaled range
-        bineq = numpy.vstack([bineq, -Lbs, Ubs])
+#    if Label_scalers == None: # if flux in their true range instead of scaled range
+#        bineq = numpy.vstack([bineq, -Lbs, Ubs])
 
     Aeq = numpy.zeros((10+1, 29+1))
     Aeq[1,1] = 1; 
@@ -160,9 +160,6 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     Solution = Solv['x']
 
     Solution = numpy.array(Solution)[:,0] # conversion from cvxopt's matrix to numpy array
-
-    
-
 
     if Debug:
 
