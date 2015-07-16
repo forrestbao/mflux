@@ -135,14 +135,14 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     if Label_scalers == None:
         P = numpy.eye((29))
         q = [[Fluxes[i] for i in range(1, 29+1)]]
-    else:
-        P = numpy.eye((29)) # incomplete here  
-        q = [[Label_scaler.transform(Fluxes[i]) for i in range(1, 29+1)]]
+    else: # convert non-scaled fluxes into [0,1]
+        P = numpy.square(numpy.diag([Label_scaler[i].scale_ for i in range(1, 29+1)]))
+        q = [[Label_scaler[i].scale_ for i in range(1, 29+1)]]
         if Debug:
             for i in range(1,29+1): 
                 pass
 
-    q = -1*numpy.array((q)).transpose()
+    q = -1*numpy.array((q)).transpose() # -1 is because -v_i but f.T*x in standard quadprog formalization
 
 #    print map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])
 #    print map(type, [Aineq, bineq, Aeq, beq, P, q])
