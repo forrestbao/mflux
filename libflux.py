@@ -51,7 +51,12 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     >>> Substrates = {1:1, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0}
     >>> Fluxes = {1: 100.0, 2: -2.7159, 3: 15.2254, 4: 17.7016, 5: 110.9973, 6: 91.8578, 7: 137.7961, 8: 91.1558, 9: -0.7373, 10: 94.1518, 11: 24.1126, 12: 21.231, 13: 2.8816, 14: 11.0324, 15: 10.1986, 16: 11.0324, 17: 79.4203, 18: 79.4203, 19: 67.9442, 20: 67.8806, 21: 79.3567, 22: 79.3567, 23: 64.0876, 24: 11.4761, 25: 70.0392, 26: -1.2424, 27: 0.0059, 28: 23.2159, 29: 26.7451}
     >>> import libflux
-    >>> libflux.quadprog_adjust(Substrates, Fluxes)
+    >>> libflux.quadprog_adjust(Substrates, Fluxes, Debug=True)
+    >>> import cPickle
+    >>> Label_scalers = cPickle.load(open("label_scalers.p", "r"))
+    >>> libflux.quadprog_adjust(Substrates, Fluxes, Debug=True, Labels_scaler = Label_scalers)
+
+
     """
 
     import numpy
@@ -95,7 +100,8 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
   
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
-    
+    Aineq = numpy.matrix(Aineq)    
+
 
     bineq = numpy.zeros((12+1, 1+1))
     bineq[2,1]= 100 * Substrates[Substrate2Index["fructose"]]
@@ -105,7 +111,8 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
 
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        bineq = numpy.vstack([bineq, -Lbs, Ubs])
-
+    bineq = numpy.matrix(bineq)
+	
     Aeq = numpy.zeros((10+1, 29+1))
     Aeq[1,1] = 1; 
     Aeq[2,3] = 1; Aeq[2,4] = -1; 
@@ -136,9 +143,10 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
         P = numpy.eye((29))
         q = [[Fluxes[i] for i in range(1, 29+1)]]
     else: # convert non-scaled fluxes into [0,1]
-        P = numpy.square(numpy.diag([Label_scaler[i].scale_ for i in range(1, 29+1)]))
-        q = [[Label_scaler[i].scale_ for i in range(1, 29+1)]]
+        P = numpy.square(numpy.diag([Label_scalers[i].scale_ for i in range(1, 29+1)]))
+        q = [[Label_scalers[i].scale_**2 * Fluxes[i] for i in range(1, 29+1)]]
         if Debug:
+#            print P
             for i in range(1,29+1): 
                 pass
 
@@ -163,10 +171,13 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
 
     if Debug:
 
-        numpy.set_printoptions(precision=5, suppress=True)
+        numpy.set_printoptions(precision=4, suppress=True)
 
+        print "\t".join(["V", "Adjusted", "Input", "Diff", "Diff%"])
         for Idx, Value in enumerate(Solution):
-            print "{0}\t{1:.4f}\t{2:.4f}".format(Idx+1, Value, Fluxes[Idx+1]) # convert from 0-index to 1-index
+#            print type((Ubs-Lbs)[Idx][0])
+            print "{0}\t{1:.4f}\t{2:.4f}\t{3:.4f}\t{4:.2f}".\
+                  format(Idx+1, Value, Fluxes[Idx+1], Value-Fluxes[Idx+1], (Value-Fluxes[Idx+1])/((Ubs-Lbs)[Idx][0])*100) # convert from 0-index to 1-index
 
     Solution = {i+1: Solution[i] for i in xrange(29)} # turn from numpy array to dict 
 
