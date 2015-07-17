@@ -183,7 +183,7 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
             print "{0:2d}{1:10.3f}{2:10.3f}{3:10.3f}{4:8.1f}{5:8.1f}".\
                   format(Idx+1, Value, Fluxes[Idx+1], Diff, Diff/Fluxes[Idx+1]*100, Diff/((Ubs-Lbs)[Idx][0])*100) # convert from 0-index to 1-index
         print "</pre>"
-
+	 
     Solution = {i+1: Solution[i] for i in xrange(29)} # turn from numpy array to dict 
 
     return Solution
@@ -281,7 +281,7 @@ def process_input(Features):
 
     Substrate_names = ["glucose", "fructose", "galactose", "gluconate", "glutamate", "citrate", "xylose", "succinate", "malate", "lactate", "pyruvate", "glycerol", "acetate",  "NaHCO3"]
     Substrate_dict = collections.OrderedDict([(i+1,Name) for i, Name in enumerate(Substrate_names)])
-    print "<p>Feature Vector (pre-one-hot-encoding and prescaled):", Vector, "</br>"
+    print "<p>Feature Vector (pre-one-hot-encoding and pre-scaling):", Vector, "</br>"
     print "in which the substrates ratios are:", [(Substrate_dict[Index],Ratio) for Index, Ratio in Substrates.iteritems()], 
     print "<br>Feature vector size is ", len(Vector), "</p>"
 
