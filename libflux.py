@@ -163,6 +163,8 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
 
     [Aineq, bineq, Aeq, beq, P, q] = map(cvxopt.matrix, [Aineq, bineq, Aeq, beq, P, q])
 
+    cvxopt.solvers.options['show_progress'] = False
+
     Solv = cvxopt.solvers.qp(P, q, Aineq, bineq, Aeq, beq)
 
     Solution = Solv['x']
@@ -173,12 +175,14 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
 
         numpy.set_printoptions(precision=4, suppress=True)
 
-        print "".join([" V", "   Adjusted ", "  Input  ", "    Diff  ",  "  Diff%   ", " Diff%Rg   "])
+        print "<pre>"
+        print "".join([" V", "   Adjusted ", " Predicted ", "   Diff  ",  "  Diff%  ", " Diff%Rg   "])
         for Idx, Value in enumerate(Solution):
 #            print type((Ubs-Lbs)[Idx][0])
             Diff =  Value-Fluxes[Idx+1]
             print "{0:2d}{1:10.3f}{2:10.3f}{3:10.3f}{4:8.1f}{5:8.1f}".\
                   format(Idx+1, Value, Fluxes[Idx+1], Diff, Diff/Fluxes[Idx+1]*100, Diff/((Ubs-Lbs)[Idx][0])*100) # convert from 0-index to 1-index
+        print "</pre>"
 
     Solution = {i+1: Solution[i] for i in xrange(29)} # turn from numpy array to dict 
 
@@ -350,7 +354,7 @@ def predict(Vector, Substrates):
     
 #    Influxes = adjust_influxes(Influxes, Substrates) # do not adjust as of 2015-05-10
 
-    Influxes = quadprog_adjust(Substrates, Fluxes, Label_scalers=Label_scalers)
+    Influxes = quadprog_adjust(Substrates, Influxes, Label_scalers=Label_scalers, Debug=True)
 
     T = time.clock() -T
  
