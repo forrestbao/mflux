@@ -173,10 +173,10 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
 
         numpy.set_printoptions(precision=4, suppress=True)
 
-        print "\t".join(["V", "Adjusted", "Input", "Diff", "Diff%"])
+        print "".join([" V", "   Adjusted ", "  Input  ", "    Diff  ", "  Diff%   "])
         for Idx, Value in enumerate(Solution):
 #            print type((Ubs-Lbs)[Idx][0])
-            print "{0}\t{1:.4f}\t{2:.4f}\t{3:.4f}\t{4:.2f}".\
+            print "{0:2d}{1:10.3f}{2:10.3f}{3:10.3f}{4:6.0f}".\
                   format(Idx+1, Value, Fluxes[Idx+1], Value-Fluxes[Idx+1], (Value-Fluxes[Idx+1])/((Ubs-Lbs)[Idx][0])*100) # convert from 0-index to 1-index
 
     Solution = {i+1: Solution[i] for i in xrange(29)} # turn from numpy array to dict 
