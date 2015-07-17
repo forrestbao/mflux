@@ -5,20 +5,13 @@ def process_species_db(File):
     ========
     Fields separated by tab
 
-    Species Spcies name Oxygen condition    Substrate uptake rate upper bound (mmol/gDW*mol )   1   2   3   4   5   6   7   8   9   10  11  12  13  14      Reference
-    1   Escherichia coli    1,3,2   20  Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   N       1
-    2   Corynebacterium glutamicum  1,3,2   40  Y   Y   Y   Y   Y   Y   Y   Y   N   Y   N   Y   Y   N       2
-    3   Bacillus subtilis   1,3,2   30  Y   Y   Y   Y   Y   N   Y   Y   Y   Y   Y   Y   Y   N       3
-    4   Pseudomonas putida  1   20  Y   Y   N   Y   Y   Y   N   Y   N   Y   Y   Y   Y   N       4
-    5   Synechocystis 6803  1,3,2   5   Y   Y   Y   ND  Y   Y   N   Y   Y   Y   Y   Y   Y   Y       5, 6
-    6   Shewanella oneidensis   1,3,2   20  N   N   N   N   Y   N   N   Y   Y   Y   Y   N   Y   N       7
-    7   Rhodobacter sphaeroides     1,3,2   20  Y   Y   -   Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   N       8
-    8   Actinobacillus succinogenes     1,3,2   20  Y   Y   Y   Y   Y   N   Y   ND  Y   ND  ND  Y   ND  N       9
-    9   Rhodopseudomonas palustris  1,3,2   10  N   N   N   ND  N   N   N   Y   Y   Y   Y   Y   Y   Y       10 - 14
+    Species Spcies name Oxygen condition    Substrate uptake rate upper bound (mmol/gDW*mol )   1   2   3   4   5   6   7   8   9   10  11  12  13  14  Growth rate upper bound (h-1)   Reference
+    1   Escherichia coli    1,3,2   20  Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   Y   N   1.2 1
+    2   Corynebacterium glutamicum  1,3,2   40  Y   Y   Y   Y   Y   Y   Y   Y   N   Y   N   Y   Y   N   1   2
 
     Returns
     ========
-    DB: A list of tuples. Each tuple is (species, Oxygen, rate, Carbon1, Carbon 2, ..., Carbon 14)
+    DB: A list of tuples. Each tuple is (species, Oxygen, rate, Carbon1, Carbon 2, ..., Carbon 14, Growth_rate_upper)
         Oxygen itself is a string, e.g., "1,2,3"
 
     """
@@ -31,12 +24,13 @@ def process_species_db(File):
 #            print Field
             [Species, Substrate_rate] = map(int, [Field[0], Field[3]])
             Oxygen = Field[2] #map(int, Field[2].split(","))
-            Carbon_src = [ Carbon_sub.get(x, False) for x in Field[4:4+14+1]  ]
-            DB.append(tuple([Species, Oxygen, Substrate_rate]+ Carbon_src))
+            Carbon_src = [ Carbon_sub.get(x, False) for x in Field[4:4+13+1]  ]
+            Growth_rate_upper = Field[4+14] 
+            DB.append(tuple([Species, Oxygen, Substrate_rate]+ Carbon_src + [Growth_rate_upper]))
 
     return DB
 
-def species_db_to_constraints(DB):
+def species_db_to_constraints(DB, Debug=False):
     """Turn the species DB into a CSP problem (constraints only, no variable ranges)
 
     Parameters
@@ -69,13 +63,13 @@ def species_db_to_constraints(DB):
 
     # add constraints, where each entry in DB is a constraint. 
     #   create the lambda functions
-    All_vars= ["Species", "Substrate_rate", "Oxygen"] + ["Carbon"+str(i) for i in xrange(1, 14+1)]
+    All_vars= ["Species", "Substrate_rate", "Oxygen"] + ["Carbon"+str(i) for i in xrange(1, 14+1)] + ["Growth_rate_upper"]
     for Entry in DB:
         Oxygen_values = Entry[1] # as string
         Foo = "lambda "
         Foo += ", ".join(All_vars) # done with listing all variables
         Foo += ": " 
-        Logic_exp = ["Substrate_rate<=" + str(Entry[2]), "Species==" + str(Entry[0])]
+        Logic_exp = ["Substrate_rate<=" + str(Entry[2]), "Species==" + str(Entry[0]), "Growth_rate_upper<=" + str(Entry[4+13])]
 
         for i in range(3, 3+14): # carbon sources
             if not Entry[i]: # only use false ones to create the constraint
@@ -85,7 +79,8 @@ def species_db_to_constraints(DB):
 
         Logic_exp = " and ".join(Logic_exp)
         Logic_exp = "not (" + Logic_exp + ")"  # De Morgan's Law
-#        print Logic_exp
+        if Debug: 
+            print Logic_exp
         problem.addConstraint(eval(Foo + Logic_exp), tuple(All_vars))
 
     return problem # just return one solution, if no solution, return is NoneType
@@ -111,17 +106,24 @@ def input_ok(problem, Vector):
     >>> Vector = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.72, 10.47, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0]  
     >>> print clp.input_ok(P, Vector)
     True
-    >>> P.reset() # another test
+    >>> P.reset() # another test, violating the carbon source it takes
     >>> P  = clp.species_db_to_constraints(DB)
     >>> Vector = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.72, 17, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0.0] 
     >>> print clp.input_ok(P, Vector)
     False
+    >>> P.reset() # another test, violating growth rate upper boundary
+    >>> P  = clp.species_db_to_constraints(DB)
+    >>> Vector = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.72, 10.47, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0]
+    >>> print clp.input_ok(P, Vector)
+    False
+
 
     """
 
     problem.addVariable("Species", [Vector[0]])
     problem.addVariable("Substrate_rate", [Vector[8]])
     problem.addVariable("Oxygen", [Vector[3]])
+    problem.addVariable("Growth_rate_upper", [Vector[7]])
     for i in xrange(1, 14+1):
         problem.addVariable("Carbon"+str(i), [True if Vector[i+8]>0 else False]) # create one variable for each carbon source
 
