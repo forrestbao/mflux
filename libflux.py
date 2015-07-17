@@ -173,11 +173,12 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
 
         numpy.set_printoptions(precision=4, suppress=True)
 
-        print "".join([" V", "   Adjusted ", "  Input  ", "    Diff  ", "  Diff%   "])
+        print "".join([" V", "   Adjusted ", "  Input  ", "    Diff  ",  "  Diff%   ", " Diff%Rg   "])
         for Idx, Value in enumerate(Solution):
 #            print type((Ubs-Lbs)[Idx][0])
-            print "{0:2d}{1:10.3f}{2:10.3f}{3:10.3f}{4:6.0f}".\
-                  format(Idx+1, Value, Fluxes[Idx+1], Value-Fluxes[Idx+1], (Value-Fluxes[Idx+1])/((Ubs-Lbs)[Idx][0])*100) # convert from 0-index to 1-index
+            Diff =  Value-Fluxes[Idx+1]
+            print "{0:2d}{1:10.3f}{2:10.3f}{3:10.3f}{4:8.1f}{5:8.1f}".\
+                  format(Idx+1, Value, Fluxes[Idx+1], Diff, Diff/Fluxes[Idx+1]*100, Diff/((Ubs-Lbs)[Idx][0])*100) # convert from 0-index to 1-index
 
     Solution = {i+1: Solution[i] for i in xrange(29)} # turn from numpy array to dict 
 
@@ -348,9 +349,10 @@ def predict(Vector, Substrates):
         Influxes[vID] = Influx_local
     
 #    Influxes = adjust_influxes(Influxes, Substrates) # do not adjust as of 2015-05-10
+
+    Influxes = quadprog_adjust(Substrates, Fluxes, Label_scalers=Label_scalers)
+
     T = time.clock() -T
-   
-    Influxes = quadprog_adjust(Substrates, Fluxes)
  
     print_influxes(Influxes)
 
