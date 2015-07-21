@@ -235,6 +235,28 @@ def print_influxes(Influxes):
 #        """ % (ID, Value)
 
 
+def process_boundaries(Form):
+    """Extract boundaries for fluxes from user input
+
+    Form: cgi object
+
+    """
+    import itertools
+    import cgi
+    Feature_names = ["".join([Bound, ID]) for  (Bound, ID) in itertools.product(["lb", "ub"], map(str, range(1, 29+1))) ]
+    Features= {}
+    for Feature_name in Feature_names:
+        Feature_value = Form.getfirst(Feature_name)
+        if Feature_value:
+#            print Feature_name, Feature_value
+            Feature_value = cgi.escape(Feature_value) 
+            Features[Feature_name] = float(Feature_value) # convert all string to numbers
+
+            print """\
+            %s is %s, 
+            """ % (Feature_name, Feature_value)
+    return Features
+
 def process_input(Features):
     """Process the result from CGI parsing to form feature vector including substrate matrixi
 
@@ -317,6 +339,7 @@ def predict(Vector, Substrates):
 
     Vector: 1-D list of floats, the feature vector, including substrate matrix, size = 24
     Substrates: dict of floats, 1-indexed part of Feature_vector, ratio of substrates
+    Ubs, Lbs: Upper boundaries and lower boundaries for 29 fluxes, depending on user inputs 
     Models: dict of models, 1-indexed, 29 moddels for 29 influxes. 
 
     Calls adjust_influxes() to compute dependent influxes. 
