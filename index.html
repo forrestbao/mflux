@@ -6,7 +6,7 @@
 
 <body>
 
-<p>Select or enter the values for your experiment and we will compute the influx values for you. </p>
+<p>Select or enter the values for your experiment and we will compute the flux values for you. </p>
 
 
 <form method="get" action="compute.py">
@@ -143,6 +143,67 @@ Existence of other carbon source : <select name="Substrate_other">
 <option value="0">0. No </option>
 <option value="1">1. Yes </option>
  </select><br>
+
+<h4>(Optional) Manually set boundaries for fluxes below. Leave blank to use default values. Do NOT enter 0 unless you really want to. </h4>
+
+v1: Glucose --> G6P  ....................... (glk/ptsG) ...........Flux lower bound: <input type="text" name="lb1"> Flux upper bound: <input type="text" name="ub1"> Default [0, 100]<br> 
+
+v2: G6P --> F6P    .................................  (pgi) ................Flux lower bound: <input type="text" name="lb2"> Flux upper bound: <input type="text" name="ub2"> Default [-99.9, 99.5]<br>
+
+v3: FBP(F6P) --> GAP + DHAP ....(pfk/fba)...............Flux lower bound: <input type="text" name="lb3"> Flux upper bound: <input type="text" name="ub3"> Default [-51.5, 99.3]<br>
+
+v4: DHAP --> GAP ...........................(tpiA) ................Flux lower bound: <input type="text" name="lb4"> Flux upper bound: <input type="text" name="ub4"> Default [-51.5, 99.3]<br>
+
+v5: GAP --> 3PG ...........................(gapA/gapC)..........Flux lower bound: <input type="text" name="lb5"> Flux upper bound: <input type="text" name="ub5"> Default [-13.5, 216.6]<br>
+
+v6: 3PG --> PEP .............................(gpm/eno) ............Flux lower bound: <input type="text" name="lb6"> Flux upper bound: <input type="text" name="ub6"> Default [-23.3, 196.2]<br>
+
+v7: PEP --> PYR ......................(pyk/ptsG/ppsA).........Flux lower bound: <input type="text" name="lb7"> Flux upper bound: <input type="text" name="ub7">Default [-36, 232] <br>
+
+v8: PYR--> AceCoA ..........(lpd/pfl/tdcE/aceE/aceF)..Flux lower bound: <input type="text" name="lb8"> Flux upper bound: <input type="text" name="ub8"> Default [-7.9, 213.1]<br>
+
+v9: AceCoA --> Acetate.................. (pta/ackA)...........Flux lower bound: <input type="text" name="lb9"> Flux upper bound: <input type="text" name="ub9">Default [-144, 135] <br>
+
+v10: G6P --> 6PG ...........................(zwf/pgl)..............Flux lower bound: <input type="text" name="lb10"> Flux upper bound: <input type="text" name="ub10"> Default [0, 151.4]<br>
+
+v11: 6PG --> Ru5P + CO<sub>2</sub> .................(gnd).................Flux lower bound: <input type="text" name="lb11"> Flux upper bound: <input type="text" name="ub11"> Default [0, 113.7]<br>
+
+v12: Ru5P --> X5P ............................(rpe)..................Flux lower bound: <input type="text" name="lb12"> Flux upper bound: <input type="text" name="ub12"> Default [-33, 94.1]<br> 
+
+v13: Ru5P <-> R5P ............................(rpi) .................Flux lower bound: <input type="text" name="lb13"> Flux upper bound: <input type="text" name="ub13">Default [-94.4, 41.2] <br>
+
+v14: X5P + R5P <-> S7P + GAP .......(tkt)..................Flux lower bound: <input type="text" name="lb14"> Flux upper bound: <input type="text" name="ub14"> Default [-2, 47.5]<br>
+
+v15: X5P + E4P <-> F6P + GAP .......(tal)...................Flux lower bound: <input type="text" name="lb15"> Flux upper bound: <input type="text" name="ub15"> Default [-6.6, 71]<br>
+
+v16: S7P + GAP --> F6P + E4P........ (tkt)...................Flux lower bound: <input type="text" name="lb16"> Flux upper bound: <input type="text" name="ub16">Default [-2, 47.5] <br>
+
+v17: AceCoA --> CIT.................. (gltA/prpC).............Flux lower bound: <input type="text" name="lb17"> Flux upper bound: <input type="text" name="ub17">Default [0, 189] <br>
+
+v18: CIT --> ICIT .............................(acn)...................Flux lower bound: <input type="text" name="lb18"> Flux upper bound: <input type="text" name="ub18"> Default [0, 189]<br>
+
+v19: ICIT --> AKG + CO<sub>2</sub> ................(icd)...................Flux lower bound: <input type="text" name="lb19"> Flux upper bound: <input type="text" name="ub19"> Default [0, 189]<br>
+
+v20: AKG--> SUC + CO<sub>2</sub>  .................(suc)..................Flux lower bound: <input type="text" name="lb20"> Flux upper bound: <input type="text" name="ub20"> Default [0, 194]<br>
+
+v21: SUC --> FUM ...............(sdhABCD/frdABCD)...Flux lower bound: <input type="text" name="lb21"> Flux upper bound: <input type="text" name="ub21">Default [-105, 194] <br>
+
+v22: FUM <-> MAL ....................(fumABC) ..............Flux lower bound: <input type="text" name="lb22"> Flux upper bound: <input type="text" name="ub22">Default [-106, 194] <br>
+
+v23: MAL<-> OAA .....................(mdh/mqo)...............Flux lower bound: <input type="text" name="lb23"> Flux upper bound: <input type="text" name="ub23"> Default [-144.3, 181.5]<br>
+
+v24: ICIT --> GLX + SUC & GLX + AceCoA -->MAL ..(aceA/aceB).........Flux lower bound: <input type="text" name="lb24"> Flux upper bound: <input type="text" name="ub24">Default [0, 55] <br>
+
+v25: 6PG --> PYR + GAP .............(edd/eda).................Flux lower bound: <input type="text" name="lb25"> Flux upper bound: <input type="text" name="ub25">Default [0, 148] <br>
+
+v26: AceCoA --> Ethanol ..................(adh)...................Flux lower bound: <input type="text" name="lb26"> Flux upper bound: <input type="text" name="ub26">Default [0, 193.2] <br>
+
+v27: PYR --> Lactate .........................(ldh) ...................Flux lower bound: <input type="text" name="lb27"> Flux upper bound: <input type="text" name="ub27">Default [-100, 151] <br>
+
+v28: PEP + CO2 <-> OAA ..............(ppc/ppk) .............Flux lower bound: <input type="text" name="lb28"> Flux upper bound: <input type="text" name="ub28"> Default [-67.6, 149.8]<br>
+
+v29: MAL --> PYR + CO<sub>2</sub> ............ (maeA/maeB)........Flux lower bound: <input type="text" name="lb29"> Flux upper bound: <input type="text" name="ub29">Default [-13.5, 104.2] <br>
+
 
 <input type="submit" value="Click to compute">
 </form> 

@@ -527,20 +527,19 @@ if __name__ == "__main__":
     = prepare_data(Datasheet, Parameter_file=Parameter_file, Label_std_method="MinMax")
 
 #    grid_search_tasks(std_training_data)
-    cv_tasks(Training_data, 10, 4, Label_scalers, Parameters)
-    exit()
+#    cv_tasks(Training_data, 10, 4, Label_scalers, Parameters)
 
 
 #    reports = _validate_training_data(std_training_data)
 #    for i, report in enumerate(reports, 1):
 #        print("v = {}, duplicate data index = {}".format(i, report.values()))
 
-    models = train_model(std_training_data, Parameters)
+    models = train_model(Training_data, Parameters)
     cPickle.dump(models, open("models_svm.p", "wb"))
     cPickle.dump(Feature_scalers, open("feature_scalers.p", "wb"))
-    cPickle.dump(encoders, open("encoders.p", "wb"))
-#    cPickle.dump(Label_scalers, open("label_scalers.p", "wb"))
+    cPickle.dump(Encoders, open("encoders.p", "wb"))
+    cPickle.dump(Label_scalers, open("label_scalers.p", "wb"))
 
-    cPickle.dump(training_data, open("training_data.p", "wb"))
-    cPickle.dump(encoded_training_data, open("encoded_training_data.p", "wb"))
-    cPickle.dump(std_training_data,  open("std_training_data.p", "wb"))
+#    cPickle.dump(training_data, open("training_data.p", "wb"))
+#    cPickle.dump(encoded_training_data, open("encoded_training_data.p", "wb"))
+#    cPickle.dump(std_training_data,  open("std_training_data.p", "wb"))

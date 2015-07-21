@@ -1,5 +1,5 @@
 
-def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
+def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scalers=None):
     """adjust values from ML
 
     Parameters
@@ -10,6 +10,8 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     Label_scaler: sklearn.preprocessing.standardScaler or .MinMaxScaler 
                   Forward transform is from fluxes in true range to scaled range 
                   Inverse transform is from scaled range to true range
+    Boundary_dict: Upper boundaries and lower boundaries for 29 fluxes, depending on user inputs, 
+                   e.g., {"lb29":999, "ub8":50}, populate ub and lb inequalities from them
 
     Returns 
     =========
@@ -51,11 +53,11 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
     >>> Substrates = {1:1, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0}
     >>> Fluxes = {1: 100.0, 2: -2.7159, 3: 15.2254, 4: 17.7016, 5: 110.9973, 6: 91.8578, 7: 137.7961, 8: 91.1558, 9: -0.7373, 10: 94.1518, 11: 24.1126, 12: 21.231, 13: 2.8816, 14: 11.0324, 15: 10.1986, 16: 11.0324, 17: 79.4203, 18: 79.4203, 19: 67.9442, 20: 67.8806, 21: 79.3567, 22: 79.3567, 23: 64.0876, 24: 11.4761, 25: 70.0392, 26: -1.2424, 27: 0.0059, 28: 23.2159, 29: 26.7451}
     >>> import libflux
-    >>> libflux.quadprog_adjust(Substrates, Fluxes, Debug=True)
+    >>> libflux.quadprog_adjust(Substrates, Fluxes, {}, Debug=True)
     >>> import cPickle
     >>> Label_scalers = cPickle.load(open("label_scalers.p", "r"))
-    >>> libflux.quadprog_adjust(Substrates, Fluxes, Debug=True, Labels_scaler = Label_scalers)
-
+    >>> libflux.quadprog_adjust(Substrates, Fluxes, {}, Debug=True, Label_scalers = Label_scalers)
+    >>> libflux.quadprog_adjust(Substrates, Fluxes, {"ub1":50}, Debug=True, Label_scalers = Label_scalers)
 
     """
 
@@ -80,6 +82,8 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
            0,-100,-67.60986805,-13.5]])
     Lbs = Lbs.transpose() # turn it into column vector, 29x1
 
+    Aineq_bound, Bineq_bound = populate_boundary_inequalities(Boundary_dict)
+
     Aineq = numpy.zeros((12+1, 29+1)) # the plus 1 is to tackle MATLAB 1-index
     Aineq[1,1] = 1; Aineq[1,2] = -1; Aineq[1,10] = -1;    
 #    Aineq[2,2] = 1;Aineq[2,3] = -1; Aineq[2,15] = 1; Aineq[2,16] = 1; 
@@ -100,7 +104,11 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
   
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
-    Aineq = numpy.matrix(Aineq)    
+
+    if Aineq_bound:
+        Aineq = numpy.vstack([Aineq, Aineq_bound])
+
+#    Aineq = numpy.matrix(Aineq)    
 
 
     bineq = numpy.zeros((12+1, 1+1))
@@ -111,7 +119,10 @@ def quadprog_adjust(Substrates, Fluxes, Debug=False, Label_scalers=None):
 
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        bineq = numpy.vstack([bineq, -Lbs, Ubs])
-    bineq = numpy.matrix(bineq)
+    if Bineq_bound:
+        Bineq = numpy.vstack([Bineq, Bineq_bound])
+
+#    bineq = numpy.matrix(bineq)
 	
     Aeq = numpy.zeros((10+1, 29+1))
     Aeq[1,1] = 1; 
@@ -234,15 +245,60 @@ def print_influxes(Influxes):
 #        v%s = %.4f, <br> 
 #        """ % (ID, Value)
 
+def populate_boundary_inequalities(Boundary_dict):
+    """
+    Boundary_dict: Upper boundaries and lower boundaries for 29 fluxes, depending on user inputs, 
+                   e.g., {"lb29":999, "ub8":50}, populate ub and lb inequalities from them
+
+    Aineq: X-by-29 binary matrix, where N is the number of Ubs and Lbs set by user
+    Bineq: X-by-1 column vector
+
+    for any v_j <= p, there is Aineq[i][j] ==  1 and Bineq[j] ==  P
+    for any v_j >= p, there is Aineq[i][j] == -1 and Bineq[j] == -p
+    Note the inequalities are: Ax <= B
+
+    """
+    import numpy
+    if Boundary_dict == {}:
+        return None, None
+
+    Row_vectors  = [] # must be 29 columns and X rows where X is the number of Ubs and Lbs set by user
+    Boundary_column_vectors = [] # X rows and 1 column
+    for Polarity_Id, Bound_value in Boundary_dict.iteritems():
+        Bound_type, Flux_ID = Polarity_Id[:2], int(Polarity_Id[2:])
+        Row_vector = numpy.zeros(29)
+        if Bound_type == "lb":
+            Bound_value = -1*Bound_value
+            Row_vector[Flux_ID-1] = -1.
+        elif Bound_type == "ub":   
+            Row_vector[Flux_ID-1] = 1. 
+        else: 
+            print "wrong boundary"
+        Row_vectors.append(Row_vector)
+        Boundary_column_vectors.append(Bound_value)
+#        print "<br>", Bound_type, Flux_ID, Bound_value
+    
+    Aineq = numpy.vstack(Row_vectors)
+    Bineq = numpy.vstack(Boundary_column_vectors)
+
+    if Debug:
+        print "<pre>"
+        print Aineq
+        print Bineq
+        print "</pre>"
+
+    return Aineq, Bineq
 
 def process_boundaries(Form):
     """Extract boundaries for fluxes from user input
 
     Form: cgi object
-
+    Features: {}, empty dictionary by default
+   
     """
     import itertools
     import cgi
+    
     Feature_names = ["".join([Bound, ID]) for  (Bound, ID) in itertools.product(["lb", "ub"], map(str, range(1, 29+1))) ]
     Features= {}
     for Feature_name in Feature_names:
@@ -255,6 +311,7 @@ def process_boundaries(Form):
             print """\
             %s is %s, 
             """ % (Feature_name, Feature_value)
+
     return Features
 
 def process_input(Features):
@@ -334,12 +391,14 @@ def adjust_influxes(Influxes, Substrates):
 
     return Influxes
 
-def predict(Vector, Substrates):
+def predict(Vector, Substrates, Boundary_dict):
     """ Predict and adjust all influx values
 
     Vector: 1-D list of floats, the feature vector, including substrate matrix, size = 24
     Substrates: dict of floats, 1-indexed part of Feature_vector, ratio of substrates
-    Ubs, Lbs: Upper boundaries and lower boundaries for 29 fluxes, depending on user inputs 
+    Boundary_dict: Upper boundaries and lower boundaries for 29 fluxes, depending on user inputs, 
+                   e.g., {"lb29":999, "ub8":50}, populate ub and lb inequalities from them
+                   If no boundary set by user, it can be an empty dictionary
     Models: dict of models, 1-indexed, 29 moddels for 29 influxes. 
 
     Calls adjust_influxes() to compute dependent influxes. 
@@ -377,7 +436,7 @@ def predict(Vector, Substrates):
     
 #    Influxes = adjust_influxes(Influxes, Substrates) # do not adjust as of 2015-05-10
 
-    Influxes = quadprog_adjust(Substrates, Influxes, Label_scalers=Label_scalers, Debug=True)
+    Influxes = quadprog_adjust(Substrates, Influxes, Boundary_dict, Label_scalers=Label_scalers, Debug=True)
 
     T = time.clock() -T
  

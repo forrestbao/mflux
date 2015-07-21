@@ -3,6 +3,8 @@
 import cgi
 form  = cgi.FieldStorage() # instantiate only once!
 
+import cgitb; cgitb.enable()
+
 #Feature_names =  ["Purpose", "Reactor", "Species", "Nutrient", "Method", "Energy", "MFA", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
 Feature_names =  ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "MFA", "Energy", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
 
@@ -34,9 +36,10 @@ for Feature_name in Feature_names:
 
 import libflux 
 Vector, Substrates = libflux.process_input(Features)
+Boundary_dict = libflux.process_boundaries(form)
 
 #libflux.test("hello, world")
-Influxes = libflux.predict(Vector, Substrates) # use the feature vector to predict influx values 
+Influxes = libflux.predict(Vector, Substrates, Boundary_dict) # use the feature vector to predict influx values 
 
 print """\
 <p><a href="index.html">Go back to submission page</a></p>
