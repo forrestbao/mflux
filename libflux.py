@@ -105,7 +105,7 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
 
-    if Aineq_bound:
+    if not Aineq_bound == None :
         Aineq = numpy.vstack([Aineq, Aineq_bound])
 
 #    Aineq = numpy.matrix(Aineq)    
@@ -119,8 +119,8 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        bineq = numpy.vstack([bineq, -Lbs, Ubs])
-    if Bineq_bound:
-        Bineq = numpy.vstack([Bineq, Bineq_bound])
+    if not Bineq_bound == None:
+        bineq = numpy.vstack([bineq, Bineq_bound])
 
 #    bineq = numpy.matrix(bineq)
 	
@@ -245,7 +245,7 @@ def print_influxes(Influxes):
 #        v%s = %.4f, <br> 
 #        """ % (ID, Value)
 
-def populate_boundary_inequalities(Boundary_dict):
+def populate_boundary_inequalities(Boundary_dict, Debug=False):
     """
     Boundary_dict: Upper boundaries and lower boundaries for 29 fluxes, depending on user inputs, 
                    e.g., {"lb29":999, "ub8":50}, populate ub and lb inequalities from them
