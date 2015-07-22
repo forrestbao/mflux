@@ -107,8 +107,8 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 
     if not Aineq_bound == None :
         Aineq = numpy.vstack([Aineq, Aineq_bound])
-
-#    Aineq = numpy.matrix(Aineq)    
+    else:
+        Aineq = numpy.matrix(Aineq)    
 
 
     bineq = numpy.zeros((12+1, 1+1))
@@ -121,8 +121,8 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 #        bineq = numpy.vstack([bineq, -Lbs, Ubs])
     if not Bineq_bound == None:
         bineq = numpy.vstack([bineq, Bineq_bound])
-
-#    bineq = numpy.matrix(bineq)
+    else:
+        bineq = numpy.matrix(bineq)
 	
     Aeq = numpy.zeros((10+1, 29+1))
     Aeq[1,1] = 1; 
