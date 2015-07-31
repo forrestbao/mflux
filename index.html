@@ -1,5 +1,5 @@
 <html>
-
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <head>
 	<title>Influx prediction model</title>
 </head>
@@ -14,7 +14,7 @@
 <!--Purpose: <select name="Purpose">
 <option value="1">1. Research</option>
 <option value="2">2. Metabolic engineering to produce target products</option>
-</select><br--!>
+</select><br-->
 
 Reactor type: <select name="Reactor">
 <option value="1">1. Batch  (shake flask)</option>
@@ -144,65 +144,66 @@ Existence of other carbon source : <select name="Substrate_other">
 <option value="1">1. Yes </option>
  </select><br>
 
-<h4>(Optional) Manually set boundaries for fluxes below. Leave blank to use default values. Do NOT enter 0 unless you really want to. </h4>
 
-v1: Glucose --> G6P  ....................... (glk/ptsG) ...........Flux lower bound: <input type="text" name="lb1"> Flux upper bound: <input type="text" name="ub1"> Default [0, 100]<br> 
+<h4>(Optional) Manually set boundaries for fluxes below. Leave intact to use default values. Do NOT enter 0 unless you really want to. </h4>
 
-v2: G6P --> F6P    .................................  (pgi) ................Flux lower bound: <input type="text" name="lb2"> Flux upper bound: <input type="text" name="ub2"> Default [-99.9, 99.5]<br>
+v1: Glucose &rArr; G6P  ....................... (glk/ptsG) ...........Min: <input type="text" name="lb1" value = "0" size="5">  Max: <input type="text" name="ub1" value = "100" size="5"> Default [0, 100]<br> 
 
-v3: FBP(F6P) --> GAP + DHAP ....(pfk/fba)...............Flux lower bound: <input type="text" name="lb3"> Flux upper bound: <input type="text" name="ub3"> Default [-51.5, 99.3]<br>
+v2: G6P &rArr; F6P    .................................  (pgi) ................Min: <input type="text" name="lb2" value = "-99.9" size="5"> Max: <input type="text" name="ub2" value = "99.5" size="5"> Default [-99.9, 99.5]<br>
 
-v4: DHAP --> GAP ...........................(tpiA) ................Flux lower bound: <input type="text" name="lb4"> Flux upper bound: <input type="text" name="ub4"> Default [-51.5, 99.3]<br>
+v3: FBP(F6P) &rArr; GAP + DHAP ....(pfk/fba)...............Min: <input type="text" name="lb3" value = "-51.5" size="5"> Max: <input type="text" name="ub3" value = "99.3" size="5"> Default [-51.5, 99.3]<br>
 
-v5: GAP --> 3PG ...........................(gapA/gapC)..........Flux lower bound: <input type="text" name="lb5"> Flux upper bound: <input type="text" name="ub5"> Default [-13.5, 216.6]<br>
+v4: DHAP &rArr; GAP ...........................(tpiA) ................Min: <input type="text" name="lb4" value = "-51.5" size="5"> Max: <input type="text" name="ub4" value = "99.3" size="5"> Default [-51.5, 99.3]<br>
 
-v6: 3PG --> PEP .............................(gpm/eno) ............Flux lower bound: <input type="text" name="lb6"> Flux upper bound: <input type="text" name="ub6"> Default [-23.3, 196.2]<br>
+v5: GAP &rArr; 3PG ...........................(gapA/gapC)..........Min: <input type="text" name="lb5" value = "-13.5" size="5"> Max: <input type="text" name="ub5" value = " 216.6" size="5"> Default [-13.5, 216.6]<br>
 
-v7: PEP --> PYR ......................(pyk/ptsG/ppsA).........Flux lower bound: <input type="text" name="lb7"> Flux upper bound: <input type="text" name="ub7">Default [-36, 232] <br>
+v6: 3PG &rArr; PEP .............................(gpm/eno) ............Min: <input type="text" name="lb6" value = "-23.3" size="5"> Max: <input type="text" name="ub6" value = "196.2" size="5"> Default [-23.3, 196.2]<br>
 
-v8: PYR--> AceCoA ..........(lpd/pfl/tdcE/aceE/aceF)..Flux lower bound: <input type="text" name="lb8"> Flux upper bound: <input type="text" name="ub8"> Default [-7.9, 213.1]<br>
+v7: PEP &rArr; PYR ......................(pyk/ptsG/ppsA).........Min: <input type="text" name="lb7" value = "-36" size="5"> Max: <input type="text" name="ub7" value = "232" size="5">Default [-36, 232] <br>
 
-v9: AceCoA --> Acetate.................. (pta/ackA)...........Flux lower bound: <input type="text" name="lb9"> Flux upper bound: <input type="text" name="ub9">Default [-144, 135] <br>
+v8: PYR &rArr; AceCoA ..........(lpd/pfl/tdcE/aceE/aceF)..Min: <input type="text" name="lb8" value = "-7.9" size="5"> Max: <input type="text" name="ub8" value = "213.1" size="5"> Default [-7.9, 213.1]<br>
 
-v10: G6P --> 6PG ...........................(zwf/pgl)..............Flux lower bound: <input type="text" name="lb10"> Flux upper bound: <input type="text" name="ub10"> Default [0, 151.4]<br>
+v9: AceCoA &rArr; Acetate.................. (pta/ackA)...........Min: <input type="text" name="lb9" value = "-144" size="5"> Max: <input type="text" name="ub9" value = "135" size="5">Default [-144, 135] <br>
 
-v11: 6PG --> Ru5P + CO<sub>2</sub> .................(gnd).................Flux lower bound: <input type="text" name="lb11"> Flux upper bound: <input type="text" name="ub11"> Default [0, 113.7]<br>
+v10: G6P &rArr; 6PG ...........................(zwf/pgl)..............Min: <input type="text" name="lb10" value = "0" size="5"> Max: <input type="text" name="ub10" value = "151.4" size="5"> Default [0, 151.4]<br>
 
-v12: Ru5P --> X5P ............................(rpe)..................Flux lower bound: <input type="text" name="lb12"> Flux upper bound: <input type="text" name="ub12"> Default [-33, 94.1]<br> 
+v11: 6PG &rArr; Ru5P + CO<sub>2</sub> .................(gnd).................Min: <input type="text" name="lb11" value = "0" size="5"> Max: <input type="text" name="ub11" value = "113.7" size="5"> Default [0, 113.7]<br>
 
-v13: Ru5P <-> R5P ............................(rpi) .................Flux lower bound: <input type="text" name="lb13"> Flux upper bound: <input type="text" name="ub13">Default [-94.4, 41.2] <br>
+v12: Ru5P &rArr; X5P ............................(rpe)..................Min: <input type="text" name="lb12" value = "-33" size="5"> Max: <input type="text" name="ub12" value = "94.1" size="5"> Default [-33, 94.1]<br> 
 
-v14: X5P + R5P <-> S7P + GAP .......(tkt)..................Flux lower bound: <input type="text" name="lb14"> Flux upper bound: <input type="text" name="ub14"> Default [-2, 47.5]<br>
+v13: Ru5P &hArr; R5P ............................(rpi) .................Min: <input type="text" name="lb13" value = "-94.4" size="5"> Max: <input type="text" name="ub13" value = "41.2" size="5">Default [-94.4, 41.2] <br>
 
-v15: X5P + E4P <-> F6P + GAP .......(tal)...................Flux lower bound: <input type="text" name="lb15"> Flux upper bound: <input type="text" name="ub15"> Default [-6.6, 71]<br>
+v14: X5P + R5P &hArr; S7P + GAP .......(tkt)..................Min: <input type="text" name="lb14" value = "-2" size="5"> Max: <input type="text" name="ub14" value = "47.5" size="5"> Default [-2, 47.5]<br>
 
-v16: S7P + GAP --> F6P + E4P........ (tkt)...................Flux lower bound: <input type="text" name="lb16"> Flux upper bound: <input type="text" name="ub16">Default [-2, 47.5] <br>
+v15: X5P + E4P &hArr; F6P + GAP .......(tal)...................Min: <input type="text" name="lb15" value = "-6.6" size="5"> Max: <input type="text" name="ub15" value = "71" size="5"> Default [-6.6, 71]<br>
 
-v17: AceCoA --> CIT.................. (gltA/prpC).............Flux lower bound: <input type="text" name="lb17"> Flux upper bound: <input type="text" name="ub17">Default [0, 189] <br>
+v16: S7P + GAP &rArr; F6P + E4P........ (tkt)...................Min: <input type="text" name="lb16" value = "-2" size="5"> Max: <input type="text" name="ub16" value = "47.5" size="5">Default [-2, 47.5] <br>
 
-v18: CIT --> ICIT .............................(acn)...................Flux lower bound: <input type="text" name="lb18"> Flux upper bound: <input type="text" name="ub18"> Default [0, 189]<br>
+v17: AceCoA &rArr; CIT.................. (gltA/prpC).............Min: <input type="text" name="lb17" value = "0" size="5"> Max: <input type="text" name="ub17" value = "189" size="5">Default [0, 189] <br>
 
-v19: ICIT --> AKG + CO<sub>2</sub> ................(icd)...................Flux lower bound: <input type="text" name="lb19"> Flux upper bound: <input type="text" name="ub19"> Default [0, 189]<br>
+v18: CIT &rArr; ICIT .............................(acn)...................Min: <input type="text" name="lb18" value = "0" size="5"> Max: <input type="text" name="ub18" value = "189" size="5"> Default [0, 189]<br>
 
-v20: AKG--> SUC + CO<sub>2</sub>  .................(suc)..................Flux lower bound: <input type="text" name="lb20"> Flux upper bound: <input type="text" name="ub20"> Default [0, 194]<br>
+v19: ICIT &rArr; AKG + CO<sub>2</sub> ................(icd)...................Min: <input type="text" name="lb19" value = "0" size="5"> Max: <input type="text" name="ub19" value = "189" size="5"> Default [0, 189]<br>
 
-v21: SUC --> FUM ...............(sdhABCD/frdABCD)...Flux lower bound: <input type="text" name="lb21"> Flux upper bound: <input type="text" name="ub21">Default [-105, 194] <br>
+v20: AKG &rArr; SUC + CO<sub>2</sub>  .................(suc)..................Min: <input type="text" name="lb20" value = "0" size="5"> Max: <input type="text" name="ub20" value = "194" size="5"> Default [0, 194]<br>
 
-v22: FUM <-> MAL ....................(fumABC) ..............Flux lower bound: <input type="text" name="lb22"> Flux upper bound: <input type="text" name="ub22">Default [-106, 194] <br>
+v21: SUC &rArr; FUM ...............(sdhABCD/frdABCD)...Min: <input type="text" name="lb21" value = "-105" size="5"> Max: <input type="text" name="ub21" value = "194" size="5">Default [-105, 194] <br>
 
-v23: MAL<-> OAA .....................(mdh/mqo)...............Flux lower bound: <input type="text" name="lb23"> Flux upper bound: <input type="text" name="ub23"> Default [-144.3, 181.5]<br>
+v22: FUM &hArr; MAL ....................(fumABC) ..............Min: <input type="text" name="lb22" value = "-106" size="5"> Max: <input type="text" name="ub22" value = "194" size="5">Default [-106, 194] <br>
 
-v24: ICIT --> GLX + SUC & GLX + AceCoA -->MAL ..(aceA/aceB).........Flux lower bound: <input type="text" name="lb24"> Flux upper bound: <input type="text" name="ub24">Default [0, 55] <br>
+v23: MAL &hArr; OAA .....................(mdh/mqo)...............Min: <input type="text" name="lb23" value = "-144.3" size="5"> Max: <input type="text" name="ub23" value = "181.5" size="5"> Default [-144.3, 181.5]<br>
 
-v25: 6PG --> PYR + GAP .............(edd/eda).................Flux lower bound: <input type="text" name="lb25"> Flux upper bound: <input type="text" name="ub25">Default [0, 148] <br>
+v24: ICIT &rArr; GLX + SUC & GLX + AceCoA -->MAL ..(aceA/aceB).........Min: <input type="text" name="lb24" value = "0" size="5"> Max: <input type="text" name="ub24" value = "55" size="5">Default [0, 55] <br>
 
-v26: AceCoA --> Ethanol ..................(adh)...................Flux lower bound: <input type="text" name="lb26"> Flux upper bound: <input type="text" name="ub26">Default [0, 193.2] <br>
+v25: 6PG &rArr; PYR + GAP .............(edd/eda).................Min: <input type="text" name="lb25" value = "0" size="5"> Max: <input type="text" name="ub25" value = "148" size="5">Default [0, 148] <br>
 
-v27: PYR --> Lactate .........................(ldh) ...................Flux lower bound: <input type="text" name="lb27"> Flux upper bound: <input type="text" name="ub27">Default [-100, 151] <br>
+v26: AceCoA &rArr;Ethanol ..................(adh)...................Min: <input type="text" name="lb26" value = "0" size="5"> Max: <input type="text" name="ub26" value = "193.2" size="5">Default [0, 193.2] <br>
 
-v28: PEP + CO2 <-> OAA ..............(ppc/ppk) .............Flux lower bound: <input type="text" name="lb28"> Flux upper bound: <input type="text" name="ub28"> Default [-67.6, 149.8]<br>
+v27: PYR &rArr; Lactate .........................(ldh) ...................Min: <input type="text" name="lb27" value = "-100" size="5"> Max: <input type="text" name="ub27" value = "151" size="5">Default [-100, 151] <br>
 
-v29: MAL --> PYR + CO<sub>2</sub> ............ (maeA/maeB)........Flux lower bound: <input type="text" name="lb29"> Flux upper bound: <input type="text" name="ub29">Default [-13.5, 104.2] <br>
+v28: PEP + CO<sub>2</sub> &hArr; OAA ..............(ppc/ppk) .............Min: <input type="text" name="lb28" value = "-67.6" size="5"> Max: <input type="text" name="ub28" value = "149.8" size="5"> Default [-67.6, 149.8]<br>
+
+v29: MAL &rArr; PYR + CO<sub>2</sub> ............ (maeA/maeB)........Min: <input type="text" name="lb29" value = "-13.5" size="5"> Max: <input type="text" name="ub29" value = "104.2" size="5">Default [-13.5, 104.2] <br>
 
 
 <input type="submit" value="Click to compute">
