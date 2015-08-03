@@ -91,7 +91,7 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
     Aineq[2,2] = 1;Aineq[2,3] = -1; Aineq[2,16] = 2; 
     Aineq[3,3] = 1; Aineq[3,4] = 1; Aineq[3,5] = -1;Aineq[3,14] = 1; Aineq[3,25] = 1;
     Aineq[4,5] = 1; Aineq[4,6] = -1; 
-    Aineq[5,6] = 1; Aineq[5,7] = -1; Aineq[5,28] = -1; 
+#    Aineq[5,6] = 1; Aineq[5,7] = -1; Aineq[5,28] = -1;    
     Aineq[6,7] = 1; Aineq[6,8] = -1; Aineq[6,25] = 1;Aineq[6,27] = -1; Aineq[6,29] = 1;
     Aineq[7,8] = 1; Aineq[7,9] = -1; Aineq[7,17] = -1;Aineq[7,24] = -1; Aineq[7,26] = -1; 
     Aineq[8,13] = 1; Aineq[8,14] = -1;  
