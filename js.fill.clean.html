@@ -1,26 +1,32 @@
-<script>
-  function addTxt(values, ids)
-  {
-      for (var i =0, l=ids.length; i<l; ++i)
-      document.getElementById(ids[i]).value = values[i];
-  }
-  
-  function reset_txt(ids)
-  {
-      for (var i =0, l=ids.length; i<l; ++i)
-      document.getElementById(ids[i]).reset(); 
-  }
-</script>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-<input type="text" name="lastname" id="lastname">
-<input type="text" name="firstname" id="firstname">
-
-
-<form action="">
-<input type="radio" name="selection" value="bound" onclick="addTxt(['Charlie','Chan'], ['lastname', 'firstname'])">Fill default values<br>
-<input type="radio" name="selection" value="nobound" onclick="reset_txt(['lastname', 'firstname'])">Clear default values<br>
-<input type="radio" name="selection" value="bound" onclick="addTxt(['',''], ['lastname', 'firstname'])">Reset<br>
-
-
-</form>
-
+    <script type="text/javascript">
+      function addTxt(values, ids) {
+        var l = ids.length;
+        for (var i=0; i<l; i++) {
+          document.getElementById(ids[i]).value = values[i];
+        }
+      }
+      function resetTxt() {
+        document.getElementById("nameForm").reset();
+      }
+    </script>
+  </head>
+  <body>
+    <form action="" id="nameForm">
+      <input type="text" name="lastname" id="lastname">
+      <input type="text" name="firstname" id="firstname">
+      <br>
+      <input type="radio" name="selection" value="bound" onclick="addTxt(['Charlie','Chan'], ['lastname', 'firstname'])">Fill default values
+      <br>
+      <input type="radio" name="selection" value="nobound" onclick="resetTxt()">Clear default values
+      <br>
+      <input type="radio" name="selection" value="bound" onclick="addTxt(['',''], ['lastname', 'firstname'])">Reset
+      <br>
+    </form>
+  </body>
+</html>
