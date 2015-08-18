@@ -1,0 +1,26 @@
+<script>
+  function addTxt(values, ids)
+  {
+      for (var i =0, l=ids.length; i<l; ++i)
+      document.getElementById(ids[i]).value = values[i];
+  }
+  
+  function reset_txt(ids)
+  {
+      for (var i =0, l=ids.length; i<l; ++i)
+      document.getElementById(ids[i]).reset(); 
+  }
+</script>
+
+<input type="text" name="lastname" id="lastname">
+<input type="text" name="firstname" id="firstname">
+
+
+<form action="">
+<input type="radio" name="selection" value="bound" onclick="addTxt(['Charlie','Chan'], ['lastname', 'firstname'])">Fill default values<br>
+<input type="radio" name="selection" value="nobound" onclick="reset_txt(['lastname', 'firstname'])">Clear default values<br>
+<input type="radio" name="selection" value="bound" onclick="addTxt(['',''], ['lastname', 'firstname'])">Reset<br>
+
+
+</form>
+
