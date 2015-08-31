@@ -35,7 +35,7 @@ for Feature_name in Feature_names:
 
 import libflux 
 Vector, Substrates = libflux.process_input(Features)
-Boundary_dict = libflux.process_boundaries(form)
+Boundary_dict = libflux.process_boundaries(form, Substrates)
 
 #libflux.test("hello, world")
 Influxes = libflux.predict(Vector, Substrates, Boundary_dict) # use the feature vector to predict influx values 

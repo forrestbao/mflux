@@ -289,17 +289,36 @@ def populate_boundary_inequalities(Boundary_dict, Debug=False):
 
     return Aineq, Bineq
 
-def process_boundaries(Form):
+def process_boundaries(Form, Substrates):
     """Extract boundaries for fluxes from user input
 
     Form: cgi object
     Features: {}, empty dictionary by default
-   
+  
+    Notes
+    =======
+    In Substrates, the mapping from keys to real chemicals is as follows:
+        1. Glucose
+        2. Fructose
+        3. Galactose
+        4. Gluconate
+        5. Glutamate
+        6. Citrate
+        7. Xylose
+        8. Succinate
+        9. Malate
+        10. Lactate
+        11. Pyruvate
+        12. Glycerol
+        13. Acetate
+        14. NaHCO3
+    
     """
     import itertools
     import cgi
-    
+    Substrate2Index= {"glucose":1, "galactose":3, "fructose":2, "gluconate":4, "glutamate":5, "citrate":6, "xylose":7, "succinate":8, "malate":9, "lactate":10, "pyruvate":11, "glycerol":12, "acetate":13} 
     Feature_names = ["".join([Bound, ID]) for  (Bound, ID) in itertools.product(["lb", "ub"], map(str, range(1, 29+1))) ]
+
     Features= {}
     for Feature_name in Feature_names:
         Feature_value = Form.getfirst(Feature_name)
@@ -308,9 +327,15 @@ def process_boundaries(Form):
             Feature_value = cgi.escape(Feature_value) 
             Features[Feature_name] = float(Feature_value) # convert all string to numbers
 
-            print """\
-            %s is %s, 
-            """ % (Feature_name, Feature_value)
+    if Substrates[Substrate2Index["acetate"]] == 0:
+        Features["lb9"] = 0
+    if Substrates[Substrate2Index["lactate"]] == 0:
+        Features["lb27"] = 0
+
+    for Feature_name in Feature_names:
+        print """\
+        %s is %s, 
+        """ % (Feature_name, Features[Feature_name])
 
     return Features
 
@@ -366,27 +391,28 @@ def process_input(Features):
 
     return Vector, Substrates
 
-def adjust_influxes(Influxes, Substrates):
-    """Adjust influxes values
+def rule_adjust(Influxes, Substrates):
+    """Adjust influxes values using rules
     """
-    Substrate2Index= {"glucose":1, "galactose":3, "gluconate":4, "citrate":6, "xylose":7, "succinate":8, "malate":9, "lactate":10, "acetate":13}
- 
+
+    Substrate2Index= {"glucose":1, "galactose":3, "fructose":2, "gluconate":4, "glutamate":5, "citrate":6, "xylose":7, "succinate":8, "malate":9, "lactate":10, "pyruvate":11, "glycerol":12, "acetate":13}
+
     #Step 1: Compute dependent influxes 
-    Influxes[1] = 100 * Substrates[Substrate2Index["glucose"]]
-    Influxes[13] = Influxes[11] - Influxes[12]
-    Influxes[16] = Influxes[14]
-    Influxes[25] = Influxes[10] - Influxes[11] + 100 * Substrates[Substrate2Index["gluconate"]]
-    Influxes[18] = Influxes[17] + 100 * Substrates[Substrate2Index["citrate"]]
-    Influxes[15] = Influxes[12] - Influxes[14] + 100 * Substrates[Substrate2Index["xylose"]]
-    Influxes[24] = Influxes[18] - Influxes[19]
-    Influxes[21] = Influxes[20] + Influxes[24] + 100 * Substrates[Substrate2Index["succinate"]]
-    Influxes[22] = Influxes[21]
-    Influxes[29] = Influxes[22] + Influxes[24] - Influxes[23] + 100 * Substrates[Substrate2Index["malate"]]
+#    Influxes[1] = 100 * Substrates[Substrate2Index["glucose"]]
+#    Influxes[13] = Influxes[11] - Influxes[12]
+#    Influxes[16] = Influxes[14]
+#    Influxes[25] = Influxes[10] - Influxes[11] + 100 * Substrates[Substrate2Index["gluconate"]]
+#    Influxes[18] = Influxes[17] + 100 * Substrates[Substrate2Index["citrate"]]
+#    Influxes[15] = Influxes[12] - Influxes[14] + 100 * Substrates[Substrate2Index["xylose"]]
+#    Influxes[24] = Influxes[18] - Influxes[19]
+#    Influxes[21] = Influxes[20] + Influxes[24] + 100 * Substrates[Substrate2Index["succinate"]]
+#    Influxes[22] = Influxes[21]
+#    Influxes[29] = Influxes[22] + Influxes[24] - Influxes[23] + 100 * Substrates[Substrate2Index["malate"]]
 
     # Step 2: Correct flux values
     if Substrates[Substrate2Index["acetate"]] != 0:
         Influxes[9] = -100 * Substrates[Substrate2Index["acetate"]]
-    if  Substrates[Substrate2Index["lactate"]] != 0:
+    if Substrates[Substrate2Index["lactate"]] != 0:
         Influxes[27] = -100 * Substrates[Substrate2Index["lactate"]]
 
     return Influxes
@@ -434,9 +460,8 @@ def predict(Vector, Substrates, Boundary_dict):
         Influx_local = Label_scalers[vID].inverse_transform([Influx_local])[0]
         Influxes[vID] = Influx_local
     
-#    Influxes = adjust_influxes(Influxes, Substrates) # do not adjust as of 2015-05-10
-
     Influxes = quadprog_adjust(Substrates, Influxes, Boundary_dict, Label_scalers=Label_scalers, Debug=True)
+    Influxes = rule_adjust(Influxes, Substrates) 
 
     T = time.clock() -T
  
