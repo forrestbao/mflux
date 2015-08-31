@@ -5,11 +5,10 @@ form  = cgi.FieldStorage() # instantiate only once!
 
 import cgitb; cgitb.enable()
 
-#Feature_names =  ["Purpose", "Reactor", "Species", "Nutrient", "Method", "Energy", "MFA", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
-Feature_names =  ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "MFA", "Energy", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
+# Feature_names =  ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "MFA", "Energy", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
+Feature_names =  ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec"]
 
-
-Features = {}
+Features = {"Energy":1.0, "MFA":1.0, "Substrate_other":0.0}
 
 # Avoid script injection escaping the user input
 #Purpose ="sdfsd"
