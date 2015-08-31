@@ -62,8 +62,7 @@ Nutrient type: <select name="Nutrient">
 <option value="2">2. Carbon source limited </option>
 <option value="3">3. Nitrogen source limited  </option>
 <option value="4">4. Phosphate source limited </option>
-<option value="5">5. Under stress condition </option>
-<option value="6">6. Under toxic condition </option>
+<option value="5">5. Under stress/toxic condition </option>
 </select><br>
 
 Oxygen condition: <select name="Oxygen">
@@ -81,22 +80,13 @@ Engineering method: <select name="Method">
 <option value="6">6. KO/mutation + protein overexpression </option>
 </select><br>
 
-Extra energy input: <select name="Energy">
-<option value="1">1. No extra energy </option>
-<option value="2">2. With extra energy input </option>
-</select><br>
-
-13C-MFA method: <select name="MFA">
-<option value="1">1. Stationary </option>
-<option value="2">2. Dynamics </option>
-</select><br>
 
 Growth Rate: <input type="text" name="Growth_rate">  (h<sup>-1</sup>) (normally in the range of [0, 2] h<sup>-1</sup>)
 <br>
-Substrate Uptake Rate: <input type="text" name="Substrate_uptake_rate">  (mmol*g<sup>-1</sup>*h-<sup>1</sup>)
+Total Substrate Uptake Rate: <input type="text" name="Substrate_uptake_rate">  (mmol*g<sup>-1</sup>*h-<sup>1</sup>)
 <br>
 
-Primary labeled substrate: <select name="Substrate_first">
+Primary substrate: <select name="Substrate_first">
 <option value="1">1. Glucose </option>
 <option value="2">2. Fructose </option>
 <option value="3">3. Galactose </option>
@@ -113,10 +103,10 @@ Primary labeled substrate: <select name="Substrate_first">
 <option value="14">14. NaHCO<sub>3</sub> </option>
  </select><br>
 
-Ratio of Primary labeled substrate: <input type="text" name="Ratio_first">  (In the range of [0, 1])
+Ratio of Primary substrate: <input type="text" name="Ratio_first">  (In the range of [0, 1])
 <br>
 
-Secondary labeled substrate: <select name="Substrate_sec">
+Secondary substrate: <select name="Substrate_sec">
 <option value="1">1. Glucose </option>
 <option value="2">2. Fructose </option>
 <option value="3">3. Galactose </option>
@@ -133,19 +123,15 @@ Secondary labeled substrate: <select name="Substrate_sec">
 <option value="14">14. NaHCO<sub>3</sub> </option>
 </select><br>
 
-Ratio of Secondary labeled substrate: <input type="text" name="Ratio_sec"> (In the range of [0, 1])
+Ratio of Secondary substrate: <input type="text" name="Ratio_sec"> (In the range of [0, 1])
 <br>
 
-Note: Ratio of Primary labeled substrate + Ratio of Secondary labeled substrate = 1
+Note: Ratio of Primary substrate + Ratio of Secondary substrate = 1
 <br>
 
-Existence of other carbon source : <select name="Substrate_other">
-<option value="0">0. No </option>
-<option value="1">1. Yes </option>
- </select><br>
 
 
-<h4>(Optional) Manually set boundaries for fluxes below. Leave intact to use default values. Do NOT enter 0 unless you really want to. </h4>
+<h4>For genetically modified strain, you can manually set boundaries for fluxes below. Leave intact to use default values. Do NOT enter 0 unless you really want to. </h4>
 
 v1: Glucose &rArr; G6P  ....................... (glk/ptsG) ...........Min: <input type="text" name="lb1" value = "0" size="5">  Max: <input type="text" name="ub1" value = "100" size="5"> Default [0, 100]<br> 
 
