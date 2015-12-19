@@ -20,7 +20,6 @@ print """\
 <head><title>Result of Influx analysis </title></head>
 
 <body>
-<h2>Parameters entered:</h2>
 """
 
 # Process the form values
@@ -29,9 +28,9 @@ for Feature_name in Feature_names:
     Feature_value = cgi.escape(Feature_value) 
     Features[Feature_name] = float(Feature_value) # convert all string to numbers
 
-    print """\
-    %s is %s, 
-     """ % (Feature_name, Feature_value)
+#    print """\
+#    %s is %s, 
+#     """ % (Feature_name, Feature_value)
 
 import libflux 
 Vector, Substrates = libflux.process_input(Features)
