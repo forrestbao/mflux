@@ -385,9 +385,9 @@ def process_input(Features):
 
     Substrate_names = ["glucose", "fructose", "galactose", "gluconate", "glutamate", "citrate", "xylose", "succinate", "malate", "lactate", "pyruvate", "glycerol", "acetate",  "NaHCO3"]
     Substrate_dict = collections.OrderedDict([(i+1,Name) for i, Name in enumerate(Substrate_names)])
-    print "<p>Feature Vector (pre-one-hot-encoding and pre-scaling):", Vector, "</br>"
-    print "in which the substrates ratios are:", [(Substrate_dict[Index],Ratio) for Index, Ratio in Substrates.iteritems()], 
-    print "<br>Feature vector size is ", len(Vector), "</p>"
+#    print "<p>Feature Vector (pre-one-hot-encoding and pre-scaling):", Vector, "</br>"
+#    print "in which the substrates ratios are:", [(Substrate_dict[Index],Ratio) for Index, Ratio in Substrates.iteritems()], 
+#    print "<br>Feature vector size is ", len(Vector), "</p>"
 
     return Vector, Substrates
 
@@ -439,14 +439,14 @@ def predict(Vector, Substrates, Boundary_dict):
     Encoders = cPickle.load(open("encoders.p", "r"))
     Label_scalers = cPickle.load(open("label_scalers.p", "r"))
 
-    print "<p>Models, feature and label Scalers and one-hot Encoder loaded..</p>" 
+#    print "<p>Models, feature and label Scalers and one-hot Encoder loaded..</p>" 
     #  Models: dict, keys are influx indexes and values are regression models
 
     T = time.clock()
     Influxes = {}
 #    Influxes = {Iundex:Model.predict(Scalers[Index].transform(Vector))[0] for Index, Model in Models.iteritems()}# use dictionary because influx IDs are not consecutive
 
-    print "Standardized (zero mean and unit variance) influx prediction from ML:"
+#    print "Standardized (zero mean and unit variance) influx prediction from ML:"
     for vID, Model in Models.iteritems():
         Vector_local = list(Vector) # make a copy; o/w Vector will be changed in one-hot encoding and standarization for different models
         One_hot_encoding_of_categorical_features =  Encoders[vID].transform([Vector[:6+1]]).toarray().tolist()[0]  # one-hot encoding for categorical features
@@ -456,7 +456,7 @@ def predict(Vector, Substrates, Boundary_dict):
         Vector_local = Feature_scalers[vID].transform(Vector_local) # standarization of features
 #        print Vector_local 
         Influx_local = Model.predict(Vector_local)[0] # prediction
-        print "v{0:d}={1:.5f}, ".format(vID, Influx_local)
+#        print "v{0:d}={1:.5f}, ".format(vID, Influx_local)
         Influx_local = Label_scalers[vID].inverse_transform([Influx_local])[0]
         Influxes[vID] = Influx_local
     
