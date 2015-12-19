@@ -332,10 +332,10 @@ def process_boundaries(Form, Substrates):
     if Substrates[Substrate2Index["lactate"]] == 0:
         Features["lb27"] = 0
 
-    for Feature_name in Feature_names:
-        print """\
-        %s is %s, 
-        """ % (Feature_name, Features[Feature_name])
+#   for Feature_name in Feature_names:
+#       print """\
+#       %s is %s, 
+#       """ % (Feature_name, Features[Feature_name])
 
     return Features
 
