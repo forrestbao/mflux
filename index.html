@@ -11,17 +11,12 @@
 
 <form method="get" action="compute.py">
 
-<!--Purpose: <select name="Purpose">
-<option value="1">1. Research</option>
-<option value="2">2. Metabolic engineering to produce target products</option>
-</select><br-->
-
-Reactor type: <select name="Reactor">
-<option value="1">1. Batch  (shake flask)</option>
-<option value="2">2. Batch  (baffled flask)</option>
-<option value="3">3. Batch (closed bottle) </option>
-<option value="4">4. Batch (bioreactor) </option>
-<option value="5">5. Chemostat, CSTR</option>
+Reactor Type: <select name="Reactor">
+<option value="1"> Batch (non-baffled flask)</option>
+<option value="2"> Batch (baffled flask)</option>
+<option value="3"> Batch (closed bottle) </option>
+<option value="4"> Batch (bioreactor) </option>
+<option value="5"> Chemostat, CSTR</option>
 </select><br>
 
 Species: <select name="Species">
@@ -57,27 +52,27 @@ Species: <select name="Species">
 <option value="38"> Streptomyces </option>
 </select><br>
 
-Nutrient type: <select name="Nutrient">
-<option value="1">1. Sufficient </option>
-<option value="2">2. Carbon source limited </option>
-<option value="3">3. Nitrogen source limited  </option>
-<option value="4">4. Phosphate source limited </option>
-<option value="5">5. Under stress/toxic condition </option>
+Nutrient Type: <select name="Nutrient">
+<option value="1"> Sufficient </option>
+<option value="2"> Carbon source limited </option>
+<option value="3"> Nitrogen source limited  </option>
+<option value="4"> Phosphate source limited </option>
+<option value="5"> Under stress/toxic condition </option>
 </select><br>
 
-Oxygen condition: <select name="Oxygen">
-<option value="1">1. Aerobic </option>
-<option value="2">2. Anaerobic </option>
-<option value="3">3. Microaerobic </option>
+Oxygen Condition: <select name="Oxygen">
+<option value="1"> Aerobic </option>
+<option value="2"> Anaerobic </option>
+<option value="3"> Microaerobic </option>
 </select><br>
 
-Engineering method: <select name="Method">
-<option value="1">1. Wild type </option>
-<option value="2">2. With plasmid </option>
-<option value="3">3. Protein overexpression </option>
-<option value="4">4. Knockout(KO) or mutation </option>
-<option value="5">5. KO/mutation + plasmid </option>
-<option value="6">6. KO/mutation + protein overexpression </option>
+Genetic Background: <select name="Method">
+<option value="1"> Wild type </option>
+<option value="2"> With plasmid (low overexpression burden) </option>
+<option value="3"> Protein overexpression </option>
+<option value="4"> Gene Knockout(KO) </option>
+<option value="5"> KO + plasmid (low overexpression burden) </option>
+<option value="6"> KO + protein overexpression </option>
 </select><br>
 
 
@@ -86,7 +81,7 @@ Growth Rate: <input type="text" name="Growth_rate">  (h<sup>-1</sup>) (normally 
 Total Substrate Uptake Rate: <input type="text" name="Substrate_uptake_rate">  (mmol*g<sup>-1</sup>*h-<sup>1</sup>)
 <br>
 
-Primary substrate: <select name="Substrate_first">
+Primary Substrate: <select name="Substrate_first">
 <option value="1">1. Glucose </option>
 <option value="2">2. Fructose </option>
 <option value="3">3. Galactose </option>
@@ -103,10 +98,10 @@ Primary substrate: <select name="Substrate_first">
 <option value="14">14. NaHCO<sub>3</sub> </option>
  </select><br>
 
-Ratio of Primary substrate: <input type="text" name="Ratio_first">  (In the range of [0, 1])
+Molar Ratio of Primary Substrate: <input type="text" name="Ratio_first">  (In the range of [0, 1])
 <br>
 
-Secondary substrate: <select name="Substrate_sec">
+Secondary Substrate: <select name="Substrate_sec">
 <option value="1">1. Glucose </option>
 <option value="2">2. Fructose </option>
 <option value="3">3. Galactose </option>
@@ -123,10 +118,10 @@ Secondary substrate: <select name="Substrate_sec">
 <option value="14">14. NaHCO<sub>3</sub> </option>
 </select><br>
 
-Ratio of Secondary substrate: <input type="text" name="Ratio_sec"> (In the range of [0, 1])
+Molar Ratio of Secondary Substrate: <input type="text" name="Ratio_sec"> (In the range of [0, 1])
 <br>
 
-Note: Ratio of Primary substrate + Ratio of Secondary substrate = 1
+Note: Molar Ratio of Primary Substrate + Molar Ratio of Secondary Substrate = 1
 <br>
 
 
@@ -149,7 +144,7 @@ v7: PEP &rArr; PYR ......................(pyk/ptsG/ppsA).........Min: <input typ
 
 v8: PYR &rArr; AceCoA ..........(lpd/pfl/tdcE/aceE/aceF)..Min: <input type="text" name="lb8" value = "-7.9" size="5"> Max: <input type="text" name="ub8" value = "213.1" size="5"> Default [-7.9, 213.1]<br>
 
-v9: AceCoA &rArr; Acetate.................. (pta/ackA)...........Min: <input type="text" name="lb9" value = "-144" size="5"> Max: <input type="text" name="ub9" value = "135" size="5">Default [-144, 135] <br>
+v9: AceCoA &rArr; Acetate.................. (pta/ackA)...........Min: <input type="text" name="lb9" value = "0" size="5"> Max: <input type="text" name="ub9" value = "135" size="5">Default [-144, 135] <br>
 
 v10: G6P &rArr; 6PG ...........................(zwf/pgl)..............Min: <input type="text" name="lb10" value = "0" size="5"> Max: <input type="text" name="ub10" value = "151.4" size="5"> Default [0, 151.4]<br>
 
@@ -185,7 +180,7 @@ v25: 6PG &rArr; PYR + GAP .............(edd/eda).................Min: <input typ
 
 v26: AceCoA &rArr;Ethanol ..................(adh)...................Min: <input type="text" name="lb26" value = "0" size="5"> Max: <input type="text" name="ub26" value = "193.2" size="5">Default [0, 193.2] <br>
 
-v27: PYR &rArr; Lactate .........................(ldh) ...................Min: <input type="text" name="lb27" value = "-100" size="5"> Max: <input type="text" name="ub27" value = "151" size="5">Default [-100, 151] <br>
+v27: PYR &rArr; Lactate .........................(ldh) ...................Min: <input type="text" name="lb27" value = "0" size="5"> Max: <input type="text" name="ub27" value = "151" size="5">Default [-100, 151] <br>
 
 v28: PEP + CO<sub>2</sub> &hArr; OAA ..............(ppc/ppk) .............Min: <input type="text" name="lb28" value = "-67.6" size="5"> Max: <input type="text" name="ub28" value = "149.8" size="5"> Default [-67.6, 149.8]<br>
 
@@ -201,7 +196,7 @@ v29: MAL &rArr; PYR + CO<sub>2</sub> ............ (maeA/maeB)........Min: <input
  <ul>
   <li>Prof. Dr. <a href="http://tang.eece.wustl.edu/">Yinjie J. Tang</a>, Dept. of Energy, Environmental and Chemical Engineering, Washington University in St. Louis, St. Louis, Missouri, USA</li>
   <li>Prof. Dr. <a href="http://fsbao.net">Forrest Sheng Bao</a>, Dept. of Electrical and Computer Engineering, University of Akron, Akron, Ohio, USA</li>
-  <li>Stephen Gang Wu, Ph.D. candidate, Dept. of Energy, Environmental and Chemical Engineering, Washington University in St. Louis, St. Louis, Missouri, USA</li>
+  <li>Dr. <a href="https://www.linkedin.com/in/gangwustl">Stephen Gang Wu</a>, Dept. of Energy, Environmental and Chemical Engineering, Washington University in St. Louis, St. Louis, Missouri, USA</li>
 </ul> 
 </p>
 
