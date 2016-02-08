@@ -417,6 +417,29 @@ def rule_adjust(Influxes, Substrates):
 
     return Influxes
 
+def special_species(ID):
+    """Print messages based on special species
+    """
+    Dict = {206: ("Rhodobacter sphaeroides", "Rhodobacter sphaeroides is a kind of purple bacteria that can obtain energy through photosynthesis. It can perform photoheterotrophic, photoautotrophic and chemoheterotrophic growth. It is also able to fix nitrogen and produce hydrogen. Its heterotrophic fluxomic features include: glucose metabolism shows high flux through ED pathway, TCA cycle, pyruvate shunt, and malic enzyme, while cell can perform simultaneous CO2 fixation and glucose catabolism.", ("http://jb.asm.org/content/194/2/274.full.pdf", "http://jb.asm.org/content/187/5/1581.full")), 
+            205: ("Dinoroseobacter shibae", # or Phaeobacter gallaeciensis
+"This species belongs to the Rhodobacteraceae. It uses organic substrates as carbon sources and can generate energy from light. Glucose-grown cells catabolize the carbon source exclusively via the ED pathway, whereas glycolysis and the PP pathway are for anabolic purposes only. Pyruvate carboxylase is involved in CO2 assimilation and the TCA cycle is functional.", ("http://bmcmicrobiol.biomedcentral.com/articles/10.1186/1471-2180-9-209")),
+            204:("Rhodopseudomonas palustris", "Rhodopseudomonas palustris is a purple non-sulfur bacterium and can have four metabolisms: photoautotrophic, photoheterotrophic, chemoautotrophic and chemoheterotrophic. Under photoheterotrophic condition, acetate metabolism is via TCA cycle, highly active glyoxylate shunt and phosphoenolpyruvate carboxykinase, while the Calvin cycle can re-fix CO2 from acetate oxidation. Under photoheterotrophic condition, a nifA* mutant represses its Calvin cycle and produces hydrogen. Non-growing photoheterotrophic cell can increases hydrogen yield from acetate by shifting from the glyoxylate shunt to the TCA cycle.", ("http://www.pnas.org/content/107/26/11669.full", "http://www.jbc.org/content/289/4/1960.full")),
+            203: ("Synechocystis 6803", "This cyanobacterium can grow photoautotrophic and photoheterotrophic/photomixotrophic (with glucose) conditions. Its photoautotrophic metabolism shows high fluxes through the Calvin Cycle, glycolysis and malic enzyme. Its oxidative pentose phosphate pathway is active, but its TCA cycle is weak and carries minimal fluxes through the GABA shunt. The mutant can uptake xylose and has acetate overflow via the phosphoketolase pathway. Under photomixotrophic condition, cyanobacteria can simultaneously use glucose and CO2. Under photoheterotrophic condition (PSII inactivation), it uses oxidative pentose phosphate pathway to generate NADPH from glucose.", ("http://pcp.oxfordjournals.org/content/55/9/1605.long", "http://www.sciencedirect.com/science/article/pii/S1096717611000887", "http://www.nature.com/articles/nplants201553", "http://jb.asm.org/content/197/5/943.long")),
+            202:("Chlorobaculum tepidum", "This green sulfur bacterial species uses a reversed TCA cycle for CO2 fixation. It can also perform photomixotrophic metabolism using acetate and pyruvate.", ("http://www.jbc.org/content/285/50/39544.short")), 
+            201:("Cyanothece 51142", "This cyanobacterium can fix nitrogen and perform photomixtrophic metabolism using glycerol. It has a broken TCA cycle. The nitrate-deficient condition limits CO2 fixation flux.", ("http://link.springer.com/article/10.1007%2Fs11120-013-9911-5"))
+}   
+    if ID == 207: # These two species are the same
+        ID = 205
+
+    for (Name, Description, URLs) in Dict[ID]:
+        print "<p>%s</p>" % Description
+        print "<P>See also:<ul>"
+        for URL in URLs:
+            print "<li>%s</li>" % URL
+        print "</ul></p>"
+
+    return None
+
 def predict(Vector, Substrates, Boundary_dict):
     """ Predict and adjust all influx values
 
@@ -433,6 +456,12 @@ def predict(Vector, Substrates, Boundary_dict):
     import time
     import collections
     import sys
+
+
+    # special species
+    if Vector[0] > 200: 
+        special_species(Vector[0])
+        return None
 
     Models = cPickle.load(open("models_svm.p", "r"))
     Feature_scalers = cPickle.load(open("feature_scalers.p", "r"))

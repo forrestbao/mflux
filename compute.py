@@ -46,7 +46,7 @@ print """\
 <p>
 This project is supported by National Science Foundation. <a href="http://www.nsf.gov/awardsearch/showAward?AWD_ID=1356669">More info</a> <br>
 Information on this website only relects the perspectives of the individuals.<br>
-Built by Forrest Sheng Bao http://fsbao.net 
+Built by Forrest Sheng Bao <a href="http://fsbao.net">http://fsbao.net </a>
 </p>
 </body>
 </html>
