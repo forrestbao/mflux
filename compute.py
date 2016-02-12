@@ -8,7 +8,7 @@ import cgitb; cgitb.enable()
 # Feature_names =  ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "MFA", "Energy", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec", "Ratio_sec", "Substrate_other"]
 Feature_names =  ["Species", "Reactor", "Nutrient", "Oxygen", "Method", "Growth_rate", "Substrate_uptake_rate", "Substrate_first", "Ratio_first", "Substrate_sec"]
 
-Features = {"Energy":1.0, "MFA":1.0, "Substrate_other":0.0, "Ratio_sec"L0.0}
+Features = {"Energy":1.0, "MFA":1.0, "Substrate_other":0.0, "Ratio_sec":0.0}
 
 # Avoid script injection escaping the user input
 #Purpose ="sdfsd"
@@ -27,11 +27,12 @@ for Feature_name in Feature_names:
     Feature_value = form.getfirst(Feature_name)
     Feature_value = cgi.escape(Feature_value) 
     Features[Feature_name] = float(Feature_value) # convert all string to numbers
-Features["Ratio_sec"] = 1- Features["Ratio_first"]
 
-#    print """\
-#    %s is %s, 
-#     """ % (Feature_name, Feature_value)
+    print """\
+    %s is %s, 
+     """ % (Feature_name, Feature_value)
+
+Features["Ratio_sec"] = 1- Features["Ratio_first"]
 
 import libflux 
 Vector, Substrates = libflux.process_input(Features)
