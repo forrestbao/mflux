@@ -1,5 +1,20 @@
 #!/usr/bin/env python
 
+# Copyleft 2016 Forrest Sheng Bao 
+# Released under GNU Affero General Public License Version 3.0
+# See http://www.gnu.org/licenses/agpl-3.0.en.html
+# 
+# For updated version, check our Git repository at 
+# https://bitbucket.org/forrestbao/mflux
+# or our website
+# http://mflux.org
+# 
+# Cite this work: Wu et al., Rapid prediction of bacterial heterotrophic
+# fluxomics using machine learning and constraint programming, 
+# PLoS Computational Biology, 2016, DOI: 10.1371/journal.pcbi.1004838
+# 
+# This file processes user input submitted from webform in MFlux
+
 import cgi
 form  = cgi.FieldStorage() # instantiate only once!
 

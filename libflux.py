@@ -1,3 +1,17 @@
+# Copyleft 2016 Forrest Sheng Bao 
+# Released under GNU Affero General Public License Version 3.0
+# See http://www.gnu.org/licenses/agpl-3.0.en.html
+# 
+# For updated version, check our Git repository at 
+# https://bitbucket.org/forrestbao/mflux
+# or our website
+# http://mflux.org
+# 
+# Cite this work: Wu et al., Rapid prediction of bacterial heterotrophic
+# fluxomics using machine learning and constraint programming, 
+# PLoS Computational Biology, 2016, DOI: 10.1371/journal.pcbi.1004838
+# 
+# This file contains most functions for flux prediction in MFlux
 
 def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scalers=None):
     """adjust values from ML

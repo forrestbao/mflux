@@ -1,3 +1,18 @@
+# Copyleft 2016 Forrest Sheng Bao 
+# Released under GNU Affero General Public License Version 3.0
+# See http://www.gnu.org/licenses/agpl-3.0.en.html
+# 
+# For updated version, check our Git repository at 
+# https://bitbucket.org/forrestbao/mflux
+# or our website
+# http://mflux.org
+# 
+# Cite this work: Wu et al., Rapid prediction of bacterial heterotrophic
+# fluxomics using machine learning and constraint programming, 
+# PLoS Computational Biology, 2016, DOI: 10.1371/journal.pcbi.1004838
+# 
+# This file contains functions for constraint programming in MFlux
+
 def process_species_db(File):
     """Load the species database which is Suppliment Information I
 
