@@ -1,4 +1,4 @@
-# Copyleft 2016 Forrest Sheng Bao 
+# Copyleft 2016 Forrest Sheng Bao, Wu Jiang, and Stephen Gang Wu
 # Released under GNU Affero General Public License Version 3.0
 # See http://www.gnu.org/licenses/agpl-3.0.en.html
 # 
