@@ -1,13 +1,18 @@
 SETUP
 =====
 
-1. sudo apt-get install python-dev
-2. sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
-3. sudo pip install scikit-learn python-constraint
+Assume root directory is `/home/ubuntu/mflux`.
 
-webserver
----------
-- apt-get install nginx uwsgi
+Python environment
+------------------
+1. `sudo apt-get install python-dev`
+2. `sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose`
+3. `sudo pip install scikit-learn python-constraint`
+4. regenerate all models by running `python get_model.py`
+
+web server
+----------
+- `apt-get install nginx uwsgi`
 
 nginx
 -----
@@ -22,7 +27,6 @@ server {
         root /home/ubuntu/mflux;
         index index.html index.htm;
 
-        # Make site accessible from http://localhost/
         server_name mflux.org;
         location / {
                 index index.html;
@@ -52,5 +56,5 @@ cgi-helper =.py=python
 
 ```
 
-sudo service restart uwsgi
-sudo service restart nginx
+`sudo service restart uwsgi`
+`sudo service restart nginx`
