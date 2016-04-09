@@ -251,14 +251,14 @@ def print_influxes(Influxes):
         v%s = %.4f, <br> 
         """ % (ID, Value)
 
-    print """\
-      </td>
-       <td>
-          <img src=\"centralflux.png\">
-       </td>
-      </tr>
-    </table>
-    """
+#     print """\
+#       </td>
+#        <td>
+#           <img src=\"centralflux.png\">
+#        </td>
+#       </tr>
+#     </table>
+#     """
 
 #    for ID, Value in Influxes.iteritems():
 #        print """\
