@@ -1,3 +1,8 @@
+LICENSE
+========
+GPL V3. 
+
+
 SETUP
 =====
 
