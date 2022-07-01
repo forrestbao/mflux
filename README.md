@@ -1,65 +1,49 @@
 LICENSE
 ========
 GPL V3. 
+Copyleft 2014 to 2022 Forrest Sheng Bao et al. 
 
 
 SETUP
 =====
 
-Assume root directory is `/home/ubuntu/mflux`.
+Assume root directory is `/var/www/mflux`.
 
 Python environment
 ------------------
 1. `sudo apt-get install python-dev`
-2. `sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose`
-3. `sudo pip install scikit-learn python-constraint`
+<!-- 2. `sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose` -->
+3. `python3 -m pip install scikit-learn python-constraint sympy`
 4. regenerate all models by running `python get_model.py`
 
-web server
-----------
-- `apt-get install nginx uwsgi`
 
-nginx
------
+# Web server 
 
-sudo vim /etc/nginx/sites-enabled/default
-
-```
-server {
-        listen 80 default_server;
-        listen [::]:80 default_server ipv6only=on;
-
-        root /home/ubuntu/mflux;
-        index index.html index.htm;
-
-        server_name mflux.org;
-        location / {
-                index index.html;
-        }
-
-        location ~ \.py$ {
-                include uwsgi_params;
-                uwsgi_modifier1 9;
-                uwsgi_pass 127.0.0.1:9000;
-        }
-}
+```shell
+sudo apt install apache2
+sudo a2enmod cgi
 ```
 
-uwsgi
------
+Besure that `cgi.conf` and `cgi.load` are under `/etc/apache2/mods-enabled`
 
-sudo vim /etc/uwsgi/apps-enabled/mflux.ini
-
+Add the following content to `/etc/apache2/apache2.conf`: 
 ```
-[uwsgi]
-plugins = cgi
-socket = 127.0.0.1:9000
-chdir = /home/ubuntu/mflux/
-module = pyindex
-cgi=/=/home/ubuntu/mflux/
-cgi-helper =.py=python
-
+<Directory "/var/www/mflux">
+AllowOverride None
+Options +ExecCGI 
+Require all granted
+Allow from all
+AddHandler cgi-script .py              # tell Apache to handle every file with .py suffix as a cgi program
+AddHandler default-handler .html .htm  # tell Apache to handle HTML files in regular way
+</Directory>
 ```
 
-`sudo service restart uwsgi`
-`sudo service restart nginx`
+Be sure that `DocumentRoot` is set under `/etc/apache2/sites-enabled`, like 
+```
+        DocumentRoot /var/www/mflux
+```
+
+And restart the web server: 
+```shell
+sudo systemctl restart apache2
+```

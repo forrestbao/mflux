@@ -15,10 +15,21 @@
 # building models, grid search, and cross-validation.
 
 from collections import defaultdict
-import cPickle
+import pickle
 
 import numpy
-from sklearn import cross_validation, preprocessing, grid_search
+import random
+import json
+from regex import W
+import re
+
+#from sklearn import cross_validation, preprocessing, grid_search
+# old import at Python2 era
+
+from sklearn import model_selection, preprocessing
+from numpy import square, mean, sqrt
+
+
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
@@ -62,16 +73,16 @@ def shuffle_data(Training_data):
 
 
     """
-    import random
     New_training_data = {}
-    for i, (Feature_vector, Labels) in Training_data.iteritems():
+    for i, (Feature_vector, Labels) in Training_data.items():
         Num_Samples = len(Feature_vector)
         if Num_Samples != len(Labels):
-            print "Error! Inconsistent numbers of Features Vectors and Labels"
-        Shuffled_index = range(Num_Samples)
+            print ("Error! Inconsistent numbers of Features Vectors and Labels")
+        Shuffled_index = list(range(Num_Samples))
         random.shuffle(Shuffled_index)
         New_Feature_vector = [Feature_vector[j] for j in Shuffled_index]
         New_Label = [Labels[j] for j in Shuffled_index]
+        # TODO: new scikit learn can shuffle items directly
 
         New_training_data[i] = ([New_Feature_vector, New_Label])
 
@@ -95,7 +106,7 @@ def read_spreadsheet(filename):
     EMPs are N.A. for some samples, training features were dropped for them.
     That's why we need one training feature matrix for each EMP.
 
-    We have 29 influxes values to predict and thus the index/key for training_data goes from 1 to 29
+    We have 29 influx values to predict and thus the index/key for training_data goes from 1 to 29
 
     AA is 26 for 0-index
     BA is 32 for 0-index
@@ -118,16 +129,16 @@ def read_spreadsheet(filename):
             if "" in vector:
                 vector.remove("")
             if not vector :
-                print line
+                print (line)
                 exit()
 
             labels = line[26+3: 26+3+26+5] # AD to BF, v1 to v29
 #            print Labels
 
             try:
-                vector = map(float, vector)
+                vector = list(map(float, vector))
             except ValueError:
-                print vector
+                print (vector)
 
             # Now create the dictionaries we need, one dictionary for each influx
             for i in range(1, 29+1):
@@ -142,8 +153,8 @@ def read_spreadsheet(filename):
                 training_data[i][0].append(vector) # add a row to feature vectors
                 training_data[i][1].append(float(label)) # add one label
 
-    print("checking duplicate lines...")
-    for k, v in reports.iteritems():
+    print("checking duplicate lines...", end=" \t ")
+    for k, v in reports.items():
         if len(v) > 1:
             print("line number: {}".format(v))
     print("Done.")
@@ -153,13 +164,12 @@ def read_spreadsheet(filename):
 def one_hot_encode_features(training_data):
     """Use one-hot encoder to represent categorical features
 
-    Feature from 1 to 7 are categorical features:
+    Features 1 to 7 are categorical features:
     Species, reactor, nutrient, oxygen, engineering method, MFA and extra energy
 
     """
-    import numpy
     encoded_training_data, encoders = {}, {}
-    for vid, (vectors, targets) in training_data.iteritems():
+    for vid, (vectors, targets) in training_data.items():
             encoder = preprocessing.OneHotEncoder()
             vectors = numpy.array(vectors) # 2-D array
             encoded_categorical_features = encoder.fit_transform(vectors[:, 0:6+1])
@@ -177,7 +187,7 @@ def standardize_features(training_data):
 
     """
     std_training_data, scalers = {}, {}
-    for vid, (vectors, labels) in training_data.iteritems():
+    for vid, (vectors, labels) in training_data.items():
         vectors_scaled = preprocessing.scale(vectors)
         std_training_data[vid] = (vectors_scaled, labels)
 
@@ -223,7 +233,6 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
 
 
     """
-    import sklearn
 #    print("model: {}".format(model_gen))
     print("v\tscore_accuracy")
     folds = Folds
@@ -239,7 +248,7 @@ def cross_validation_model(training_data, model_gen, Folds, N_jobs):
         if Folds < 1:
             folds = sklearn.cross_validation.ShuffleSplit(len(label))
 
-        scores = cross_validation.cross_val_score(model.model, vectors, label,
+        scores = model_selection.cross_val_score(model.model, vectors, label,
                                                   cv=folds,
                                                   scoring="mean_squared_error",
                                                   n_jobs = N_jobs
@@ -277,7 +286,7 @@ def grid_search_cv(training_data, model_gen, params, SCORINGS, CORE_NUM, FOLDS):
         vectors, label = training_data[i]
         model = model_gen()
         for scoring in SCORINGS:
-            clf = grid_search.GridSearchCV(model.model, params, scoring=scoring, n_jobs=CORE_NUM, cv=FOLDS)
+            clf = model_selection.GridSearchCV(model.model, params, scoring=scoring, n_jobs=CORE_NUM, cv=FOLDS)
             clf.fit(vectors, label)
             print("{}\t{}\t{}\t{}".format(i, scoring, clf.best_score_,
                                           clf.best_params_))
@@ -289,7 +298,6 @@ def grid_search_tasks(std_training_data):
     FOLDS: int, number of folds for cross validate
 
     """
-    import numpy
     knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
     svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=10, epsilon=0.2)
     dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
@@ -336,7 +344,7 @@ def grid_search_tasks(std_training_data):
     ]
 
     FOLDS = 10
-    CORE_NUM = 32
+    CORE_NUM = 8
 
     [grid_search_cv(std_training_data, k, v, SCORINGS, CORE_NUM, FOLDS) for k, v in TRAINING_PARMAS]
 
@@ -349,13 +357,12 @@ def cv_tasks(std_training_data, Folds, N_jobs, Label_scalers, Parameters):
     :param Parameters: dict, keys are fluxes and values are parameters for all fluxes
 
     """
-    import sklearn
     knn_model_gen = RegressionModelFactory("KNeighborsRegressor", n_neighbors=10, weights="distance")
 #    dtree_model_gen = RegressionModelFactory("DecisionTreeRegressor", random_state=0)
 
     if Parameters != None: # need to create one instances for one flux
         svr_model_gen = {}
-        for i in xrange(1, 29+1):
+        for i in range(1, 29+1):
             svr_model_gen[i] = RegressionModelFactory("SVR", **(Parameters[i]))
     else: # same set of parameters for all SVR models.
         svr_model_gen = RegressionModelFactory("SVR", kernel="linear", C=0.1, epsilon=0.01)
@@ -383,11 +390,10 @@ def svr_training_test(std_training_data, Parameters, Label_scalers=None):
     Label_scalers: dict, keys are int 1 to 29, value sare sklearn scaler objects 
 
     """
-    from numpy import square, mean, sqrt
     Models = train_model(std_training_data, Parameters)
     Influxes = {}
 
-    for vID, Model in Models.iteritems():
+    for vID, Model in Models.items():
         (Vectors_for_this_v, Label_for_this_v) = std_training_data[vID]
         Label_predict = Model.predict(Vectors_for_this_v)
         if Label_scalers != None:
@@ -401,9 +407,9 @@ def svr_training_test(std_training_data, Parameters, Label_scalers=None):
 #            print MSE
         MSE = sqrt(mean(square(MSE)))
 
-        print "\t&\t".join(map(str, [vID, MSE
+        print ("\t&\t".join(map(str, [vID, MSE
         , max(Label_for_this_v), min(Label_for_this_v)
-        ])) + "\t\\\\"
+        ])) + "\t\\\\")
 #        for i, j in enumerate(list(MSE)):
 #            print i+1, j
 #        print list(square(MSE))
@@ -412,14 +418,14 @@ def svr_training_test(std_training_data, Parameters, Label_scalers=None):
 
 def _validate_training_data(training_data):
     reports = []
-    for _, d in training_data.iteritems():
+    for _, d in training_data.items():
         report = defaultdict(list)
         vectors = d[0]
         for i, v in enumerate(vectors):
             key = ", ".join(map(str, v))
             report[key].append(i)
         # only keep duplicated rows
-        report_ = {k: v for k, v in report.iteritems() if len(v) > 1}
+        report_ = {k: v for k, v in report.items() if len(v) > 1}
         reports.append(report_)
 
     return reports
@@ -444,15 +450,20 @@ def label_std(Training_data, Method="Norm"):
     if Method == "None": # No label std needed 
         return Training_data, None
 
-    for vID, (Vector, Label) in Training_data.iteritems():
+    for vID, (Vector, Label) in Training_data.items():
+
+        Label = numpy.array(Label).reshape(1,-1) # to cope with new Numpy that Label must be 2D 
+
         if Method == "Norm":
             Label_scaler = sklearn.preprocessing.StandardScaler().fit(Label)
 #            Label_scaled = sklearn.preprocessing.scale(Label)  # option 1 of standarization
         elif Method == "MinMax":
             Label_scaler = sklearn.preprocessing.MinMaxScaler().fit(Label)
         else:
-             print "Unrecognized label standarization method "
+             print ("Unrecognized label standarization method ")
         Label_scaled = Label_scaler.transform(Label) # Option 2, MinMax scaler
+
+        Label_scaled = Label_scaled.ravel() # flatten it back to 1D from 2D due to reshape above
 
         Label_scaled_data[vID] = (Vector, Label_scaled)
         Label_scalers[vID] = Label_scaler
@@ -472,7 +483,6 @@ def load_parameters(File):
 	4	mean_squared_error	-0.0115793576617	{'epsilon': 0.001, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
 
     """
-    import re
     Parameters = {}
     with open(File, 'r') as F:
         F.readline() # Skip first line
@@ -481,7 +491,11 @@ def load_parameters(File):
         for Line in F.readlines():
             [v, _, _, Parameter] = Line.split("\t")
             v = int(v)
-            exec "Parameter = " + Parameter
+            Parameter = json.loads(Parameter.replace("\'", "\""))            
+
+            # exec ("Parameter = " + Parameter)
+            # exec changed meaning in Python 3
+
             Parameters[v] = Parameter
 
     return Parameters
@@ -532,8 +546,6 @@ def prepare_data(Datasheet, Parameter_file=None, Label_std_method="MinMax"):
     return Final_training_data, Feature_scalers, Label_scalers, Encoders, Parameters
 
 if __name__ == "__main__":
-#    test_label_std()
-#    exit()
 
     Datasheet = "wild_and_mutant.csv"
     Parameter_file = "svr_both_rbf_shuffle.log"
@@ -549,11 +561,11 @@ if __name__ == "__main__":
 #        print("v = {}, duplicate data index = {}".format(i, report.values()))
 
     models = train_model(Training_data, Parameters)
-    cPickle.dump(models, open("models_svm.p", "wb"))
-    cPickle.dump(Feature_scalers, open("feature_scalers.p", "wb"))
-    cPickle.dump(Encoders, open("encoders.p", "wb"))
-    cPickle.dump(Label_scalers, open("label_scalers.p", "wb"))
+    pickle.dump(models, open("models_svm.p", "wb"))
+    pickle.dump(Feature_scalers, open("feature_scalers.p", "wb"))
+    pickle.dump(Encoders, open("encoders.p", "wb"))
+    pickle.dump(Label_scalers, open("label_scalers.p", "wb"))
 
-#    cPickle.dump(training_data, open("training_data.p", "wb"))
-#    cPickle.dump(encoded_training_data, open("encoded_training_data.p", "wb"))
-#    cPickle.dump(std_training_data,  open("std_training_data.p", "wb"))
+#    pickle.dump(training_data, open("training_data.p", "wb"))
+#    pickle.dump(encoded_training_data, open("encoded_training_data.p", "wb"))
+#    pickle.dump(std_training_data,  open("std_training_data.p", "wb"))

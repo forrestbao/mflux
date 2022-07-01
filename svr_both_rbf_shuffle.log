@@ -1,0 +1,32 @@
+checking duplicate lines
+model: SVR ({'epsilon': 0.2, 'C': 10, 'kernel': 'linear'})
+v	scoring	best_score	best_params
+1	mean_squared_error	-0.00462588529703	{'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+2	mean_squared_error	-0.0103708930608	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+3	mean_squared_error	-0.00713773093885	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+4	mean_squared_error	-0.0115793576617	{'epsilon': 0.001, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+5	mean_squared_error	-0.00744425726885	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.001, 'kernel': 'rbf'}
+6	mean_squared_error	-0.00666693007708	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.001, 'kernel': 'rbf'}
+7	mean_squared_error	-0.00794186441383	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.001, 'kernel': 'rbf'}
+8	mean_squared_error	-0.0149587983683	{'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+9	mean_squared_error	-0.00532906222801	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.001, 'kernel': 'rbf'}
+10	mean_squared_error	-0.0179238741171	{'epsilon': 0.0, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+11	mean_squared_error	-0.0264390656533	{'epsilon': 0.1, 'C': 10.0, 'gamma': 0.01, 'kernel': 'rbf'}
+12	mean_squared_error	-0.0118442073639	{'epsilon': 0.01, 'C': 100.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+13	mean_squared_error	-0.00456936859099	{'epsilon': 0.001, 'C': 1000.0, 'gamma': 0.001, 'kernel': 'rbf'}
+14	mean_squared_error	-0.0169082759206	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+15	mean_squared_error	-0.0095993684284	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+16	mean_squared_error	-0.0163460014856	{'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+17	mean_squared_error	-0.0139633943751	{'epsilon': 0.0, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+18	mean_squared_error	-0.014534111189	{'epsilon': 0.01, 'C': 10.0, 'gamma': 0.10000000000000001, 'kernel': 'rbf'}
+19	mean_squared_error	-0.0155124909433	{'epsilon': 0.1, 'C': 100.0, 'gamma': 0.01, 'kernel': 'rbf'}
+20	mean_squared_error	-0.0157590855254	{'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+21	mean_squared_error	-0.0063815314896	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+22	mean_squared_error	-0.00675730018144	{'epsilon': 0.01, 'C': 10.0, 'gamma': 0.01, 'kernel': 'rbf'}
+23	mean_squared_error	-0.00667586113252	{'epsilon': 0.01, 'C': 100.0, 'gamma': 0.001, 'kernel': 'rbf'}
+24	mean_squared_error	-0.022994583418	{'epsilon': 0.1, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+25	mean_squared_error	-0.00854339556079	{'epsilon': 0.01, 'C': 1000.0, 'gamma': 0.0001, 'kernel': 'rbf'}
+26	mean_squared_error	-0.00634069503171	{'epsilon': 0.0, 'C': 1000.0, 'gamma': 0.01, 'kernel': 'rbf'}
+27	mean_squared_error	-0.0032325759817	{'epsilon': 0.0, 'C': 100.0, 'gamma': 0.01, 'kernel': 'rbf'}
+28	mean_squared_error	-0.00783522253586	{'epsilon': 0.01, 'C': 10.0, 'gamma': 0.01, 'kernel': 'rbf'}
+29	mean_squared_error	-0.0140829080278	{'epsilon': 0.1, 'C': 10.0, 'gamma': 0.01, 'kernel': 'rbf'}
