@@ -510,7 +510,7 @@ def test_label_std():
     encoded_training_data, encoders = one_hot_encode_features(training_data)
     std_training_data, Feature_scalers = standardize_features(encoded_training_data)
 
-    Parameters = load_parameters("svr_both_rbf_shuffle.log")
+    Parameters = load_parameters("static/svr_both_rbf_shuffle.log")
     
     for Std_method in ["None", "Norm", "MinMax"]:
         final_training_data, Label_scalers = label_std(std_training_data, Method=Std_method)  # standarize the labels/targets as well.
@@ -547,7 +547,7 @@ def prepare_data(Datasheet, Parameter_file=None, Label_std_method="MinMax"):
 if __name__ == "__main__":
 
     Datasheet = "wild_and_mutant.csv"
-    Parameter_file = "svr_both_rbf_shuffle.log"
+    Parameter_file = "static/svr_both_rbf_shuffle.log"
     Training_data, Feature_scalers, Label_scalers, Encoders, Parameters\
     = prepare_data(Datasheet, Parameter_file=Parameter_file, Label_std_method="MinMax")
 
