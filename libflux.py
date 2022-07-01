@@ -385,13 +385,16 @@ def process_input(Features):
     Vector += [Substrates[i] for i in range(1, Num_substrates+1)]
     Vector.append(Features["Substrate_other"]) # Other carbon source
 
-    # Print input check 
-    # import clp
-    # DB = clp.process_species_db("SI_1_species_db.csv")
-    # P  = clp.species_db_to_constraints(DB)
-    # if not clp.input_ok(P, Vector):
-    #     print("<p><font color=\"red\">The input data might violate the oxygen, substrate uptake rate or carbon sources of the selected species. Therefore, the following prediction may not be biologically meaningful. Please check your inputs!</font></p>")
-
+    # Print input check
+    try:
+        import clp
+        DB = clp.process_species_db("SI_1_species_db.csv")
+        P  = clp.species_db_to_constraints(DB)
+        if not clp.input_ok(P, Vector):
+            print("<p><font color=\"red\">The input data might violate the oxygen, substrate uptake rate or carbon sources of the selected species. Therefore, the following prediction may not be biologically meaningful. Please check your inputs!</font></p>")
+    except:
+        print("could not load SI_1_species_db.csv for input check")
+        
     # Print debug info
 
     Substrate_names = ["glucose", "fructose", "galactose", "gluconate", "glutamate", "citrate", "xylose", "succinate", "malate", "lactate", "pyruvate", "glycerol", "acetate",  "NaHCO3"]
