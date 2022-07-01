@@ -1,0 +1,42 @@
+Species	Spcies name	Oxygen condition	Substrate uptake rate upper bound (mmol/gDW*mol )	1	2	3	4	5	6	7	8	9	10	11	12	13	14	Growth rate upper bound (h-1)	Reference
+1	Escherichia coli 	1,3,2	20	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	1.2	1
+2	Corynebacterium glutamicum 	1,3,2	40	Y	Y	Y	Y	Y	Y	Y	Y	N	Y	N	Y	Y	N	1	2
+3	Bacillus subtilis 	1,3,2	30	Y	Y	Y	Y	Y	N	Y	Y	Y	Y	Y	Y	Y	N	1	3
+4	Pseudomonas putida 	1	20	Y	Y	N	Y	Y	Y	N	Y	N	Y	Y	Y	Y	N	1.2	4
+5	Synechocystis 6803	1,3,2	5	Y	Y	Y	ND	Y	Y	N	Y	Y	Y	Y	Y	Y	Y	0.3	5, 6
+6	Shewanella oneidensis 	1,3,2	20	N	N	N	N	Y	N	N	Y	Y	Y	Y	N	Y	N	0.5	7
+7	Rhodobacter sphaeroides 	1,3,2	20	Y	Y	-	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	0.5	8
+8	Actinobacillus succinogenes  	1,3,2	20	Y	Y	Y	Y	Y	N	Y	ND	Y	ND	ND	Y	ND	N	0.8	9
+9	Rhodopseudomonas palustris 	1,3,2	10	N	N	N	ND	N	N	N	Y	Y	Y	Y	Y	Y	Y	0.5	10 - 14
+10	Zymomonas mobilis 	1,3,2	70	Y	Y	N	Y	N	Y	Y	Y	Y	N	N	N	N	N	0.8	15, 16
+11	Pseudomonas fluorescens 	1	20	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	1.2	17 - 19
+12	Pseudomonas denitrificans 	1,3,2	10	Y	Y	N	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	1.2	19, 20
+13	Pseudomonas aeruginosa 	1,3,2	20	Y	Y	N	Y	Y	Y	N	Y	Y	Y	Y	Y	Y	N	1.2	21
+14	Agrobacterium tumefaciens 	1	20	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	N	1	22, 23
+15	Arthrobacter sp. 	1,3	20	Y	Y	Y	Y	Y	Y	N	N	Y	Y	Y	Y	Y	N	0.8	24, 25
+16	Azotobacter vinelandii 	1	20	Y	Y	Y	Y	Y	N	N	Y	Y	Y	Y	Y	Y	N	0.8	26 - 28
+17	Acetobacter pasteurianus 	1	200	N	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	1	29
+18	Basfia succiniciproducens 	2	20	Y	Y	Y	Y	N	N	Y	N	Y	N	N	Y	N	N	0.8	30
+19	Bacillus clausii 	1,3,2	20	Y	Y	Y	Y	N	Y	Y	ND	ND	Y	ND	Y	ND	N	0.8	31, 32
+20	Bacillus megaterium 	1,3,2	20	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	N	0.8	33
+21	Chlorobaculum tepidum 	2	5	N	N	N	N	N	ND	N	ND	ND	Y	Y	ND	Y	Y	0.5	34
+22	Clostridium acetobutylicum 	2	50	Y	Y	Y	Y	Y	N	Y	Y	Y	Y	Y	Y	N	N	0.8	35
+23	Cyanothece sp. 	1,3,2	5	Y	Y	Y	ND	ND	ND	ND	ND	ND	Y	Y	Y	N	Y	0.2	36
+24	Desulfovibrio vulgaris Hildenborough 	2	20	N	N	N	N	N	N	N	ND	Y	Y	Y	ND	Y	N	0.5	37
+25	Geobacillus thermoglucosidasius 	1,3,2	10	Y	Y	Y	Y	ND	N	Y	ND	ND	ND	ND	Y	ND	N	0.5	38, 39
+26	Geobacter metallireducens 	2	40	N	N	N	N	N	N	N	N	N	N	Y	N	Y	N	0.5	40
+27	Gluconobacter oxydans 	1	100	Y	Y	Y	Y	N	N	N	N	N	Y	ND	Y	N	N	0.5	41 - 44
+28	Methylobacterium extorquens 	1	20	Y	N	N	N	Y	N	N	Y	Y	Y	Y	Y	Y	N	0.3	45 - 49
+29	Mycobacterium bovis BCG 	1	5	Y	N	Y	N	Y	Y	Y	Y	Y	Y	Y	N	N	N	0.2	50
+30	Mycobacterium tuberculosis 	1	5	Y	N	Y	N	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	0.2	51
+31	Nonomuraea sp. 	1	5	Y	Y	Y	N	Y	Y	Y	Y	Y	N	N	Y	N	N	0.8	52 - 54
+32	Paracoccus versutus 	1	30	Y	Y	Y	Y	Y	N	ND	Y	N	Y	Y	N	Y	N	1.2	55
+33	Sinorhizobium meliloti 	1,3	20	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	0.5	56 - 58
+34	Sorangium cellulosum 	1	5	Y	Y	Y	ND	ND	ND	Y	ND	ND	N	ND	Y	N	N	0.5	59, 60
+35	Thermoanaerobacter sp 	2	10	Y	Y	Y	Y	N	N	Y	N	N	N	N	N	N	N	0.1	61, 62
+36	Thermus thermophilus 	1,3,2	10	Y	Y	Y	ND	Y	N	Y	ND	N	ND	Y	N	Y	N	0.3	63, 64
+37	Xanthomonas campestris 	1	20	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	0.5	65 - 68
+38	Streptomyces 	1	10	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	Y	N	0.5	69
+39	Corynebacterium efficiens 	1,3,2	40	Y	Y	Y	Y	N	ND	Y	ND	Y	Y	Y	N	Y	N	0.8	70
+40	Dinoroseobacter shibae 	1	10	Y	Y	N	N	N	N	Y	Y	N	Y	Y	N	Y	Y	0.8	71, 72
+41	Phaeobacter gallaeciensis 	1	10	Y	Y	Y	N	Y	N	Y	Y	ND	ND	Y	Y	Y	ND	0.8	73, 74
