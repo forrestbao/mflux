@@ -13,7 +13,7 @@ Python environment
 ------------------
 1. `sudo apt-get install python-dev`
 <!-- 2. `sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose` -->
-3. `python3 -m pip install scikit-learn python-constraint sympy`
+3. `sudo python3 -m pip install scikit-learn python-constraint sympy` # need to be installed to system paths 
 4. regenerate all models by running `python get_model.py`
 
 

@@ -13,6 +13,16 @@
 # 
 # This file contains most functions for flux prediction in MFlux
 
+import html
+import numpy 
+import pickle
+import time
+import collections
+import sys
+import itertools
+import cvxopt, cvxopt.solvers
+
+
 def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scalers=None):
     """adjust values from ML
 
@@ -75,8 +85,6 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 
     """
 
-    import numpy
-    import cvxopt, cvxopt.solvers
 
     Substrate2Index= {"glucose":1, "galactose":3, "fructose":2, "gluconate":4, "glutamate":5, "citrate":6, "xylose":7, "succinate":8, "malate":9, "lactate":10, "pyruvate":11, "glycerol":12, "acetate":13}
 
@@ -125,7 +133,7 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        Aineq = numpy.vstack([Aineq, -numpy.eye(29), numpy.eye(29)]) # add eye matrixes for Lbs and Ubs
 
-    if not Aineq_bound == None :
+    if not Aineq_bound is None :
         Aineq = numpy.vstack([Aineq, Aineq_bound])
     else:
         Aineq = numpy.matrix(Aineq)    
@@ -139,7 +147,7 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 
 #    if Label_scalers == None: # if flux in their true range instead of scaled range
 #        bineq = numpy.vstack([bineq, -Lbs, Ubs])
-    if not Bineq_bound == None:
+    if not Bineq_bound is None:
         bineq = numpy.vstack([bineq, Bineq_bound])
     else:
         bineq = numpy.matrix(bineq)
@@ -170,27 +178,21 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
     beq = beq[1:, 1:] # convert 1-index to 0-index
     beq = numpy.matrix(beq)
 
-    if Label_scalers == None:
+    if Label_scalers is None:
         P = numpy.eye((29))
         q = [[Fluxes[i] for i in range(1, 29+1)]]
     else: # convert non-scaled fluxes into [0,1]
-        P = numpy.square(numpy.diag([Label_scalers[i].scale_ for i in range(1, 29+1)]))
+        P = numpy.square(numpy.diag([Label_scalers[i].scale_[0] for i in range(1, 29+1)]))
         q = [[Label_scalers[i].scale_**2 * Fluxes[i] for i in range(1, 29+1)]]
         if Debug:
-#            print P
             for i in range(1,29+1): 
                 pass
 
-    q = -1*numpy.array((q)).transpose() # -1 is because -v_i but f.T*x in standard quadprog formalization
+    q = -1*numpy.array(q).transpose() # -1 is because -v_i but f.T*x in standard quadprog formalization
 
-#    print map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])
-#    print map(type, [Aineq, bineq, Aeq, beq, P, q])
-
-#    [bineq] = map(cvxopt.matrix, [bineq])
-
-#    [beq] = map(cvxopt.matrix, [beq])
-
-#    [Aineq, bineq, Aeq, beq] = map(cvxopt.matrix, [Aineq, bineq, Aeq, beq])
+#    print (list(map(numpy.shape, [Aineq, bineq, Aeq, beq, P, q])))
+   
+    q = q.ravel().reshape(-1, 1) # line added 2022-7-1
 
     [Aineq, bineq, Aeq, beq, P, q] = map(cvxopt.matrix, [Aineq, bineq, Aeq, beq, P, q])
 
@@ -206,21 +208,20 @@ def quadprog_adjust(Substrates, Fluxes, Boundary_dict, Debug=False, Label_scaler
 
         numpy.set_printoptions(precision=4, suppress=True)
 
-        print "<pre>"
-        print "".join([" V", "   Adjusted ", " Predicted ", "   Diff  ",  "  Diff%  ", " Diff%Rg   "])
+        print ("<pre>")
+        print(("".join([" V", "   Adjusted ", " Predicted ", "   Diff  ",  "  Diff%  ", " Diff%Rg   "]) )) 
         for Idx, Value in enumerate(Solution):
-#            print type((Ubs-Lbs)[Idx][0])
             Diff =  Value-Fluxes[Idx+1]
-            print "{0:2d}{1:10.3f}{2:10.3f}{3:10.3f}{4:8.1f}{5:8.1f}".\
-                  format(Idx+1, Value, Fluxes[Idx+1], Diff, Diff/Fluxes[Idx+1]*100, Diff/((Ubs-Lbs)[Idx][0])*100) # convert from 0-index to 1-index
-        print "</pre>"
+            print(("{0:2d}{1:10.3f}{2:10.3f}{3:10.3f}{4:8.1f}{5:8.1f}".\
+                  format(Idx+1, Value, Fluxes[Idx+1], Diff, Diff/Fluxes[Idx+1]*100,  Diff/((Ubs-Lbs)[Idx][0])*100) )) # convert from 0-index to 1-index
+        print ("</pre>")
 	 
-    Solution = {i+1: Solution[i] for i in xrange(29)} # turn from numpy array to dict 
+    Solution = {i+1: Solution[i] for i in range(29)} # turn from numpy array to dict 
 
     return Solution
 
 def test(S):
-    print S
+    print (S)
 
 def print_influxes(Influxes):
     """Print influxes
@@ -232,33 +233,26 @@ def print_influxes(Influxes):
     sys.stderr = sys.stdout
 
 #    print Influxes
-    print """\
+    print("""\
     <h2>Influx values based on given parameters:</h2>
-    """# % len(Vector)  #"\t".join(map(str, Vector))
+    """)# % len(Vector)  #"\t".join(map(str, Vector))
 
-    print """\
+    print("""\
     <table border=0 border-spacing=5px>
       <tr>
        <td>
        
-    """
+    """)
 
 #    for x in range(5):
 #        print x
 
-    for ID, Value in Influxes.iteritems():
-        print """\
+    for ID, Value in Influxes.items():
+        print("""\
         v%s = %.4f, <br> 
-        """ % (ID, Value)
+        """ % (ID, Value))
 
-#     print """\
-#       </td>
-#        <td>
-#           <img src=\"centralflux.png\">
-#        </td>
-#       </tr>
-#     </table>
-#     """
+    print ("</td><td> <img src=\"centralflux.png\">  </td>        </tr>      </table>")
 
 #    for ID, Value in Influxes.iteritems():
 #        print """\
@@ -278,13 +272,12 @@ def populate_boundary_inequalities(Boundary_dict, Debug=False):
     Note the inequalities are: Ax <= B
 
     """
-    import numpy
     if Boundary_dict == {}:
         return None, None
 
     Row_vectors  = [] # must be 29 columns and X rows where X is the number of Ubs and Lbs set by user
     Boundary_column_vectors = [] # X rows and 1 column
-    for Polarity_Id, Bound_value in Boundary_dict.iteritems():
+    for Polarity_Id, Bound_value in Boundary_dict.items():
         Bound_type, Flux_ID = Polarity_Id[:2], int(Polarity_Id[2:])
         Row_vector = numpy.zeros(29)
         if Bound_type == "lb":
@@ -293,7 +286,7 @@ def populate_boundary_inequalities(Boundary_dict, Debug=False):
         elif Bound_type == "ub":   
             Row_vector[Flux_ID-1] = 1. 
         else: 
-            print "wrong boundary"
+            print("wrong boundary")
         Row_vectors.append(Row_vector)
         Boundary_column_vectors.append(Bound_value)
 #        print "<br>", Bound_type, Flux_ID, Bound_value
@@ -302,10 +295,10 @@ def populate_boundary_inequalities(Boundary_dict, Debug=False):
     Bineq = numpy.vstack(Boundary_column_vectors)
 
     if Debug:
-        print "<pre>"
-        print Aineq
-        print Bineq
-        print "</pre>"
+        print("<pre>")
+        print(Aineq)
+        print(Bineq)
+        print("</pre>")
 
     return Aineq, Bineq
 
@@ -334,17 +327,15 @@ def process_boundaries(Form, Substrates):
         14. NaHCO3
     
     """
-    import itertools
-    import cgi
     Substrate2Index= {"glucose":1, "galactose":3, "fructose":2, "gluconate":4, "glutamate":5, "citrate":6, "xylose":7, "succinate":8, "malate":9, "lactate":10, "pyruvate":11, "glycerol":12, "acetate":13} 
-    Feature_names = ["".join([Bound, ID]) for  (Bound, ID) in itertools.product(["lb", "ub"], map(str, range(1, 29+1))) ]
+    Feature_names = ["".join([Bound, ID]) for  (Bound, ID) in itertools.product(["lb", "ub"], list(map(str, list(range(1, 29+1))))) ]
 
     Features= {}
     for Feature_name in Feature_names:
         Feature_value = Form.getfirst(Feature_name)
         if Feature_value:
 #            print Feature_name, Feature_value
-            Feature_value = cgi.escape(Feature_value) 
+            Feature_value = html.escape(Feature_value) 
             Features[Feature_name] = float(Feature_value) # convert all string to numbers
 
     if Substrates[Substrate2Index["acetate"]] == 0:
@@ -384,7 +375,7 @@ def process_input(Features):
 
     Num_substrates = 14 # excluding other carbon
     # Generate substrate matrix
-    import collections
+
     Substrates = collections.OrderedDict([(i,0) for i in range(1, Num_substrates+1)]) # substrate values, initialization
     Substrates[int(Features["Substrate_first"])] += Features["Ratio_first"]
     Substrates[int(Features["Substrate_sec"])] += Features["Ratio_sec"]
@@ -399,7 +390,7 @@ def process_input(Features):
     DB = clp.process_species_db("SI_1_species_db.csv")
     P  = clp.species_db_to_constraints(DB)
     if not clp.input_ok(P, Vector):
-        print "<p><font color=\"red\">The input data might violate the oxygen, substrate uptake rate or carbon sources of the selected species. Therefore, the following prediction may not be biologically meaningful. Please check your inputs!</font></p>"
+        print("<p><font color=\"red\">The input data might violate the oxygen, substrate uptake rate or carbon sources of the selected species. Therefore, the following prediction may not be biologically meaningful. Please check your inputs!</font></p>")
 
     # Print debug info
 
@@ -452,11 +443,11 @@ def special_species(ID):
         ID = 205
 
     (Name, Description, URLs) = Dict[ID]
-    print "<p><font color=\"red\">The species you selected is special:</font> %s</p>" % Description
-    print "<P>See also:<ul>"
+    print("<p><font color=\"red\">The species you selected is special:</font> %s</p>" % Description)
+    print("<P>See also:<ul>")
     for URL in URLs:
-        print "<li>%s</li>" % URL
-    print "</ul></p>"
+        print("<li>%s</li>" % URL)
+    print("</ul></p>")
     return None
 
 def predict(Vector, Substrates, Boundary_dict):
@@ -471,53 +462,47 @@ def predict(Vector, Substrates, Boundary_dict):
 
     Calls adjust_influxes() to compute dependent influxes. 
     """
-    import cPickle
-    import time
-    import collections
-    import sys
-
-
+   
     # special species
     if Vector[0] > 200: 
         special_species(Vector[0])
         return None
 
-    Models = cPickle.load(open("models_svm.p", "r"))
-    Feature_scalers = cPickle.load(open("feature_scalers.p", "r"))
-    Encoders = cPickle.load(open("encoders.p", "r"))
-    Label_scalers = cPickle.load(open("label_scalers.p", "r"))
+    Models = pickle.load(open("models_svm.p", "rb"))
+    Feature_scalers = pickle.load(open("feature_scalers.p", "rb"))
+    Encoders = pickle.load(open("encoders.p", "rb"))
+    Label_scalers = pickle.load(open("label_scalers.p", "rb"))
 
 #    print "<p>Models, feature and label Scalers and one-hot Encoder loaded..</p>" 
     #  Models: dict, keys are influx indexes and values are regression models
 
-    T = time.clock()
+    T = time.time()
     Influxes = {}
 #    Influxes = {Iundex:Model.predict(Scalers[Index].transform(Vector))[0] for Index, Model in Models.iteritems()}# use dictionary because influx IDs are not consecutive
 
 #    print "Standardized (zero mean and unit variance) influx prediction from ML:"
-    for vID, Model in Models.iteritems():
+    for vID, Model in Models.items():
         Vector_local = list(Vector) # make a copy; o/w Vector will be changed in one-hot encoding and standarization for different models
-        One_hot_encoding_of_categorical_features =  Encoders[vID].transform([Vector[:6+1]]).toarray().tolist()[0]  # one-hot encoding for categorical features
-#        print len(One_hot_encoding_of_categorical_features), "\n"
+        categorical_features = [Vector[:6+1]]
+        One_hot_encoding_of_categorical_features =  Encoders[vID].transform(categorical_features).toarray().tolist()[0]  # one-hot encoding for categorical features
         Vector_local =  One_hot_encoding_of_categorical_features + Vector_local[6+1:] # combine one-hot-encoded categorical features with continuous features (including substrate matrix)
-#        print Vector_local, len(Vector_local)
-        Vector_local = Feature_scalers[vID].transform(Vector_local) # standarization of features
+        Vector_local = Feature_scalers[vID].transform([Vector_local]) # standarization of features
 #        print Vector_local 
-        Influx_local = Model.predict(Vector_local)[0] # prediction
-#        print "v{0:d}={1:.5f}, ".format(vID, Influx_local)
-        Influx_local = Label_scalers[vID].inverse_transform([Influx_local])[0]
-        Influxes[vID] = Influx_local
+        Influx_local = Model.predict(Vector_local) # prediction
+        Influx_local = Label_scalers[vID].inverse_transform([Influx_local])
+        Influxes[vID] = Influx_local[0][0]  # double index added 2022-7-1 
+
     
     Influxes = quadprog_adjust(Substrates, Influxes, Boundary_dict, Label_scalers=Label_scalers, Debug=True)
     Influxes = rule_adjust(Influxes, Substrates) 
 
-    T = time.clock() -T
+    T = time.time() -T
  
     print_influxes(Influxes)
 
-    print """</p>\
+    print("""</p>\
     <p>Using RBF kernel SVM as regressor. Parameters vary for different fluxes. For details, refer to <a href="svr_both_rbf_shuffle.log">this document generated by grid search on SVM parameters</a>. </p>
-    <p>Standardization and Regression done in %s seconds.</p>
-    """ % T
+    <p>Standardization and Regression done in %.5f seconds.</p>
+    """ % T)
     return Influxes 
 

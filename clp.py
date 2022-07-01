@@ -37,7 +37,7 @@ def process_species_db(File):
         for Line in F:
             Field = Line.split("\t")
 #            print Field
-            [Species, Substrate_rate] = map(int, [Field[0], Field[3]])
+            [Species, Substrate_rate] = list(map(int, [Field[0], Field[3]]))
             Oxygen = Field[2] #map(int, Field[2].split(","))
             Carbon_src = [ Carbon_sub.get(x, False) for x in Field[4:4+13+1]  ]
             Growth_rate_upper = Field[4+14] 
@@ -78,7 +78,7 @@ def species_db_to_constraints(DB, Debug=False):
 
     # add constraints, where each entry in DB is a constraint. 
     #   create the lambda functions
-    All_vars= ["Species", "Substrate_rate", "Oxygen"] + ["Carbon"+str(i) for i in xrange(1, 14+1)] + ["Growth_rate_upper"]
+    All_vars= ["Species", "Substrate_rate", "Oxygen"] + ["Carbon"+str(i) for i in range(1, 14+1)] + ["Growth_rate_upper"]
     for Entry in DB:
         Oxygen_values = Entry[1] # as string
         Foo = "lambda "
@@ -95,7 +95,7 @@ def species_db_to_constraints(DB, Debug=False):
         Logic_exp = " and ".join(Logic_exp)
         Logic_exp = "not (" + Logic_exp + ")"  # De Morgan's Law
         if Debug: 
-            print Logic_exp
+            print(Logic_exp)
         problem.addConstraint(eval(Foo + Logic_exp), tuple(All_vars))
 
     return problem # just return one solution, if no solution, return is NoneType
@@ -139,7 +139,7 @@ def input_ok(problem, Vector):
     problem.addVariable("Substrate_rate", [Vector[8]])
     problem.addVariable("Oxygen", [Vector[3]])
     problem.addVariable("Growth_rate_upper", [Vector[7]])
-    for i in xrange(1, 14+1):
+    for i in range(1, 14+1):
         problem.addVariable("Carbon"+str(i), [True if Vector[i+8]>0 else False]) # create one variable for each carbon source
 
     Solutions = problem.getSolution()

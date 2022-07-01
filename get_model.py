@@ -20,7 +20,6 @@ import pickle
 import numpy
 import random
 import json
-from regex import W
 import re
 
 #from sklearn import cross_validation, preprocessing, grid_search
@@ -452,7 +451,7 @@ def label_std(Training_data, Method="Norm"):
 
     for vID, (Vector, Label) in Training_data.items():
 
-        Label = numpy.array(Label).reshape(1,-1) # to cope with new Numpy that Label must be 2D 
+        Label = numpy.array(Label).reshape(-1,1) # to cope with new Numpy that Label must be 2D 
 
         if Method == "Norm":
             Label_scaler = sklearn.preprocessing.StandardScaler().fit(Label)
